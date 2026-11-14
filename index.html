@@ -950,15 +950,15 @@ function wuList(d){
   return r.slice(0,8);
 }
 function vWarm(){
-  const n=S.plan.days.length,nx=nextIdx(),di=(UI.pick!=null&&UI.pick<n)?UI.pick:nx,L=wuList(S.plan.days[di]),i=Math.min(UI.wu,L.length-1),w=WU[L[i]];
+  const n=S.plan.days.length,nx=nextIdx(),di=S.draft?S.draft.day:((UI.pick!=null&&UI.pick<n)?UI.pick:nx),L=wuList(S.plan.days[di]),i=Math.min(UI.wu,L.length-1),w=WU[L[i]];
   let h='<header class="row" style="flex-wrap:nowrap;gap:8px"><button class="btn ghost sm mv" data-act="wux" aria-label="Volver">'+IC.back+'</button><h1 style="flex:1;text-align:center;font-size:24px">Calentamiento</h1><span style="width:40px"></span></header>';
   h+='<div class="dots" aria-label="Paso '+(i+1)+' de '+L.length+'">'+L.map(function(_,k){return '<button data-act="wugo" data-i="'+k+'" aria-label="Ir al paso '+(k+1)+'" class="'+(k===i?'on':'')+'"></button>';}).join('')+'</div>';
   h+='<section class="card wuc"><span class="label">'+(i+1)+' de '+L.length+' · '+w.r+'</span><h2>'+w.n+'</h2>';
   h+='<a class="btn dark" style="align-self:stretch;width:100%" href="https://www.youtube.com/watch?v='+w.v+'" target="_blank" rel="noopener noreferrer">▶ Ver video en YouTube</a>';
   h+='<div><span class="pill ok">Principal</span> <b>'+w.m+'</b></div>';
   h+='<p class="why">💡 '+w.why+'</p><ol class="steps">'+w.st.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ol></section>';
-  h+='<div class="row" style="flex-wrap:nowrap">'+(i>0?'<button class="btn ghost" data-act="wugo" data-i="'+(i-1)+'">Anterior</button>':'')+(i<L.length-1?'<button class="btn" data-act="wugo" data-i="'+(i+1)+'">Siguiente</button>':'<button class="btn" data-act="start">Empezar sesión</button>')+'</div>';
-  h+='<button class="btn ghost" data-act="start">Saltar y empezar sesión</button>';
+  h+='<div class="row" style="flex-wrap:nowrap">'+(i>0?'<button class="btn ghost" data-act="wugo" data-i="'+(i-1)+'">Anterior</button>':'')+(i<L.length-1?'<button class="btn" data-act="wugo" data-i="'+(i+1)+'">Siguiente</button>':'<button class="btn" data-act="start">'+(S.draft?'Volver a la sesión':'Empezar sesión')+'</button>')+'</div>';
+  h+='<button class="btn ghost" data-act="start">'+(S.draft?'Saltar y volver a la sesión':'Saltar y empezar sesión')+'</button>';
   return h;
 }
 function vHoy(){
@@ -975,7 +975,7 @@ function vHoy(){
   }
   h+='<section class="card hero"><div><h2 class="caps">'+esc(d.name)+'</h2><p class="mute">'+(di!==nx&&!S.draft?'Rutina cambiada':'Día '+(di+1)+' de '+n)+'</p></div><div class="row"><span class="chipi">'+IC.clock+S.profile.min+' min</span><span class="chipi">'+IC.dumb+d.slots.length+' ejercicios</span></div>';
   if(S.draft){
-    h+='<button class="btn dark" data-act="start">Continuar sesión '+IC.arrow+'</button><button class="btn ghost" data-act="discard">Descartar sesión en curso</button>';
+    h+='<div class="row"><button class="btn dark" data-act="start">Continuar sesión '+IC.arrow+'</button><button class="btn ghost sm" style="min-height:52px;background:var(--card);border:0" data-act="wu">Calentar · 5 min</button></div><button class="btn ghost" data-act="discard">Descartar sesión en curso</button>';
   }else{
     h+='<span class="label">¿Cómo llegas hoy?</span><div class="chips">'+[['fresco','Con energía'],['normal','Normal'],['cansado','Cansado']].map(function(r){return '<button class="chip" data-act="ready" data-v="'+r[0]+'" aria-pressed="'+(UI.ready===r[0])+'">'+r[1]+'</button>';}).join('')+'</div>';
     if(UI.ready==='cansado')h+='<p class="small mute">Haré la sesión más ligera: una serie menos por ejercicio y sin penalizar tu progreso.</p>';
@@ -1150,6 +1150,7 @@ function vSesion(){
   const D=S.draft,d=S.plan.days[D.day];
   const nEx=D.items.length,nDone=D.items.filter(function(it){return it.sets.length&&it.sets.every(function(x){return x.done;});}).length;
   let h='<div class="sbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+nEx+'" aria-valuenow="'+nDone+'" aria-label="Ejercicios terminados"><i style="width:'+(nEx?nDone/nEx*100:0)+'%"></i></div><p class="small mute" style="margin-top:-8px">'+nDone+' de '+nEx+' ejercicios terminados</p>';
+  h+='<button class="btn ghost sm" data-act="wu" style="align-self:flex-start">🔥 Calentamiento</button>';
   h+='<header class="row between"><div><span class="label">'+(D.ready==='cansado'?'Sesión ligera':'Sesión en curso')+'</span><h1>'+d.name+'</h1><span class="small mute">Llevas <b id="el">'+fm((Date.now()-D.t)/60000)+'</b> · empezaste a las '+new Date(D.t).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})+'</span></div><button class="btn ghost sm" data-act="leave">Salir</button></header>';
   D.items.forEach(function(it,i){
     const e=X[it.ex],p=S.prog[it.ex],open=UI.cue[it.ex]===true;
@@ -1551,7 +1552,7 @@ function renderInner(){
   if(UI.ob){tabs.style.display='none';app.innerHTML=vOnboard();return;}
   if(UI.summary){tabs.style.display='none';app.innerHTML=vResumen();return;}
   if(UI.inSession&&S.draft){tabs.style.display='none';app.innerHTML=vSesion();return;}
-  if(UI.wu!=null&&!S.draft){tabs.style.display='none';app.dataset.v='wu';app.innerHTML=vWarm();return;}
+  if(UI.wu!=null){tabs.style.display='none';app.dataset.v='wu';app.innerHTML=vWarm();return;}
   tabs.style.display='flex';
   const NI={'hoy': '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', 'plan': '<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/>', 'progreso': '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>', 'cuerpo': '<circle cx="12" cy="5" r="2.5"/><path d="M6 21l2-9-2-3h12l-2 3 2 9M9 12h6"/>', 'ajustes': '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'};$('#tabin').innerHTML=[['hoy','Hoy'],['plan','Plan'],['progreso','Progreso'],['cuerpo','Cuerpo'],['ajustes','Ajustes']].map(function(t){return '<button data-act="tab" data-v="'+t[0]+'"'+(UI.tab===t[0]?' aria-current="page"':'')+'><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+NI[t[0]]+'</svg><span>'+t[1]+'</span></button>';}).join('');
   app.dataset.v=UI.tab;app.innerHTML={hoy:vHoy,plan:vPlan,progreso:vProgreso,cuerpo:vCuerpo,ajustes:vAjustes}[UI.tab]();
@@ -1614,7 +1615,7 @@ document.addEventListener('click',function(ev){
     Notification.requestPermission().then(function(p){S.al=al();S.al.ntf=p==='granted';save();render();}).catch(function(){render();});return;}
   if(a==='altest'){unlockAudio();const x=al();if(x.snd)beep();try{navigator.vibrate&&navigator.vibrate([250,120,250]);}catch(e){}if(x.ntf)notify();return;}
   if(a==='start'){UI.wu=null;startSession();return;}
-  if(a==='wu'){UI.wu=0;render();window.scrollTo(0,0);return;}
+  if(a==='wu'){UI.wu=0;UI.inSession=false;render();window.scrollTo(0,0);return;}
   if(a==='wugo'){UI.wu=+d.i;render();window.scrollTo(0,0);return;}
   if(a==='wux'){UI.wu=null;render();window.scrollTo(0,0);return;}
   if(a==='rest'){const it=S.draft.items[+d.i],sl=slotOf(it),nv=Math.max(30,Math.min(300,(sl.rest||90)+(+d.v)));S.plan.days.forEach(function(dd){dd.slots.forEach(function(x){if(x.ex===it.ex)x.rest=nv;});});save();render();return;}
