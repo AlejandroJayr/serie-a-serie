@@ -144,6 +144,9 @@ label.btn{display:inline-flex;align-items:center;justify-content:center;cursor:p
 .card .opt[aria-pressed="true"]{background:var(--mint);border-color:transparent}
 #app[data-v] .card .opt[aria-pressed="true"]{background:var(--card)}
 #app:not([data-v]) .card .opt[aria-pressed="true"]{background:var(--mint)}
+.swp{display:flex;flex-direction:column;gap:12px;background:var(--chip);border-radius:20px;padding:14px}
+.btn.mv{width:40px;padding:0;flex:0 0 40px}
+.btn.mv[disabled]{opacity:.3}
 </style>
 </head>
 <body>
@@ -1022,12 +1025,29 @@ function plPanel(it){
   h+='<div class="row">'+(slot&&slot.w!=null?'<button class="btn ghost sm" data-act="plsug">Sugerir para '+fw(slot.w,U)+'</button>':'')+'<button class="btn sm" data-act="pluse">Usar este peso</button><button class="btn ghost sm" data-act="plclose">Cerrar</button></div></div>';
   return h;
 }
+function arrowBtn(act,dir,attrs,dis){
+  return '<button class="btn ghost sm mv" data-act="'+act+'" data-dir="'+dir+'" '+attrs+(dis?' disabled':'')+' aria-label="'+(dir<0?'Subir':'Bajar')+' ejercicio"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" style="display:block;margin:auto"><path d="'+(dir<0?'M5 12.5l5-5 5 5':'M5 7.5l5 5 5-5')+'" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
+}
+function swapPicker(k,di,si,curEx){
+  const day=S.plan.days[di],slot=day.slots[si],pr=S.profile;
+  const base=UI.sw&&UI.sw.all?PAT[slot.p].map(function(id){return X[id];}).filter(function(e){return avail(e,pr.equipo);}):cands(slot.p,pr);
+  const used=day.slots.map(function(x){return x.ex;});
+  const list=base.filter(function(e){return e.id===curEx||used.indexOf(e.id)<0;});
+  let h='<div class="swp"><div class="row between"><span class="label">Elige el ejercicio que lo sustituye</span><button class="btn ghost sm" data-act="swclose">Cerrar</button></div><div style="display:flex;flex-direction:column;gap:8px">';
+  list.forEach(function(e){
+    const g=gearOf(e),m=musOf(e);
+    h+='<button class="opt" data-act="swpick" data-ex="'+e.id+'" aria-pressed="'+(e.id===curEx)+'"><b>'+e.n+'</b><span>'+g.n+' · '+m.main.map(function(x){return MN[x];}).join(', ')+'</span></button>';
+  });
+  h+='</div><button class="chip" style="min-height:40px;align-self:flex-start" data-act="swall" aria-pressed="'+!!(UI.sw&&UI.sw.all)+'">Mostrar también los de otro nivel</button></div>';
+  return h;
+}
 function vSesion(){
   const D=S.draft,d=S.plan.days[D.day];
   let h='<header class="row between"><div><span class="label">'+(D.ready==='cansado'?'Sesión ligera':'Sesión en curso')+'</span><h1>'+d.name+'</h1><span class="small mute">Llevas <b id="el">'+fm((Date.now()-D.t)/60000)+'</b> · empezaste a las '+new Date(D.t).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})+'</span></div><button class="btn ghost sm" data-act="leave">Salir</button></header>';
   D.items.forEach(function(it,i){
-    const e=X[it.ex],p=S.prog[it.ex],open=UI.cue[it.ex];
-    h+='<section class="card"><div class="row between"><h3>'+e.n+'</h3><button class="btn ghost sm" data-act="swap" data-i="'+i+'">Cambiar</button></div>';
+    const e=X[it.ex],p=S.prog[it.ex],open=UI.cue[it.ex]!==false;
+    h+='<section class="card"><div class="row between"><h3>'+e.n+'</h3><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="swap" data-i="'+i+'">Cambiar</button>'+arrowBtn('mvsess',-1,'data-i="'+i+'"',i===0)+arrowBtn('mvsess',1,'data-i="'+i+'"',i===D.items.length-1)+'</div></div>';
+    if(UI.sw&&UI.sw.k==='draft'&&UI.sw.i===i)h+=swapPicker('draft',D.day,it.si,it.ex);
     const U=unitOf(it.ex),H=histEx(it.ex),sl=slotOf(it),zona=sl.hi<=6?'Fuerza':(sl.hi<=15?'Hipertrofia':'Resistencia');
     h+='<div style="display:flex;flex-direction:column;gap:4px">'+presc(it)+'</div>';
     h+=gearLine(e);
@@ -1035,7 +1055,7 @@ function vSesion(){
     if(UI.pl&&UI.pl.i===i)h+=plPanel(it);
     h+='<p class="small mute"><span class="pill">'+zona+'</span>'+(H.last?' Última vez: <b>'+setTxt(it.ex,H.last.sets)+'</b>':'')+'</p>';
     if(p&&p.plat)h+='<p class="note">Estancado en las últimas sesiones. Si quieres, cámbialo.</p>';
-    h+='<div class="chips"><button class="chip" style="min-height:36px" data-act="cue" data-ex="'+it.ex+'" aria-pressed="'+!!open+'">Ver cómo se hace</button>'+(e.step?'<button class="chip" style="min-height:36px" data-act="exu" data-ex="'+it.ex+'" data-v="'+(U==='kg'?'lb':'kg')+'" aria-label="Cambiar a '+(U==='kg'?'libras':'kilos')+'">Pesos en '+U+' · cambiar</button>':'')+(isPlate(e)?'<button class="chip" style="min-height:36px" data-act="plopen" data-i="'+i+'" aria-pressed="'+(!!UI.pl&&UI.pl.i===i)+'">Discos</button>':'')+'<button class="chip" style="min-height:36px" data-act="rv" data-i="'+i+'" aria-pressed="'+(UI.rv===i)+'">Revisar mi técnica</button></div>';
+    h+='<div class="chips"><button class="chip" style="min-height:36px" data-act="cue" data-ctx="s" data-ex="'+it.ex+'" aria-pressed="'+!!open+'">Cómo se hace</button>'+(e.step?'<button class="chip" style="min-height:36px" data-act="exu" data-ex="'+it.ex+'" data-v="'+(U==='kg'?'lb':'kg')+'" aria-label="Cambiar a '+(U==='kg'?'libras':'kilos')+'">Pesos en '+U+' · cambiar</button>':'')+(isPlate(e)?'<button class="chip" style="min-height:36px" data-act="plopen" data-i="'+i+'" aria-pressed="'+(!!UI.pl&&UI.pl.i===i)+'">Discos</button>':'')+'<button class="chip" style="min-height:36px" data-act="rv" data-i="'+i+'" aria-pressed="'+(UI.rv===i)+'">Revisar mi técnica</button></div>';
     if(open)h+=guideBox(e);
     if(UI.rv===i)h+=rvPanel(i);
     it.sets.forEach(function(s,j){
@@ -1146,7 +1166,7 @@ function vPlan(){
   S.plan.days.forEach(function(d,di){
     h+='<section class="card"><div class="row between"><h2>'+d.name+'</h2><span class="pill">Día '+(di+1)+'</span></div>';
     d.slots.forEach(function(s,si){
-      h+='<div class="slot"><div class="ex-row"><div style="display:flex;flex-direction:column;gap:2px"><span>'+X[s.ex].n+'</span><span class="small mute">'+lineFor(s)+'</span>'+gearLine(X[s.ex])+'</div><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="cue" data-ex="'+s.ex+'" aria-pressed="'+!!UI.cue[s.ex]+'">Ver</button><button class="btn ghost sm" data-act="swapplan" data-d="'+di+'" data-s="'+si+'">Cambiar</button></div></div>'+(UI.cue[s.ex]?guideBox(X[s.ex]):'')+'</div>';
+      h+='<div class="slot"><div class="ex-row" style="flex-direction:column;align-items:stretch"><div style="display:flex;flex-direction:column;gap:2px"><span>'+X[s.ex].n+'</span><span class="small mute">'+lineFor(s)+'</span>'+gearLine(X[s.ex])+'</div><div class="row" style="flex-wrap:wrap;gap:6px"><button class="btn ghost sm" data-act="cue" data-ex="'+s.ex+'" aria-pressed="'+(UI.cue[s.ex]===true)+'">Cómo se hace</button><button class="btn ghost sm" data-act="swapplan" data-d="'+di+'" data-s="'+si+'">Cambiar</button>'+arrowBtn('mvplan',-1,'data-d="'+di+'" data-s="'+si+'"',si===0)+arrowBtn('mvplan',1,'data-d="'+di+'" data-s="'+si+'"',si===d.slots.length-1)+'</div></div>'+(UI.sw&&UI.sw.k==='plan'&&UI.sw.d===di&&UI.sw.s===si?swapPicker('plan',di,si,s.ex):'')+(UI.cue[s.ex]===true?guideBox(X[s.ex]):'')+'</div>';
     });
     h+='</section>';
   });
@@ -1426,12 +1446,12 @@ document.addEventListener('click',function(ev){
   if(a==='mkplan'){
     S.profile=Object.assign({},UI.ob);S.unit=UI.ob.unit==='lb'?'lb':'kg';UNIT=S.unit;S.plan=genPlan(S.profile);S.next=0;S.cyc=[];UI.pick=null;S.draft=null;UI.ob=null;UI.tab='hoy';save();render();window.scrollTo(0,0);return;
   }
-  if(a==='tab'){UI.tab=d.v;render();window.scrollTo(0,0);return;}
+  if(a==='tab'){UI.tab=d.v;UI.sw=null;render();window.scrollTo(0,0);return;}
   if(a==='ready'){UI.ready=d.v;render();return;}
   if(a==='start'){startSession();return;}
   if(a==='leave'){UI.pl=null;UI.inSession=false;stopTimer();render();window.scrollTo(0,0);return;}
   if(a==='discard'){S.draft=null;save();render();return;}
-  if(a==='cue'){UI.cue[d.ex]=!UI.cue[d.ex];render();return;}
+  if(a==='cue'){const cur=d.ctx==='s'?UI.cue[d.ex]!==false:UI.cue[d.ex]===true;UI.cue[d.ex]=!cur;render();return;}
   if(a==='fb'){const it=S.draft.items[+d.i];it.fb=it.fb===d.v?'':d.v;save();render();return;}
   if(a==='addset'){const it=S.draft.items[+d.i],last=it.sets[it.sets.length-1];it.sets.push({w:last?last.w:'',r:'',done:false});save();render();return;}
   if(a==='chk'){
@@ -1445,15 +1465,28 @@ document.addEventListener('click',function(ev){
     }
     save();render();return;
   }
-  if(a==='swap'){
-    const i=+d.i,it=S.draft.items[i],n=swapSlot(S.plan,S.profile,S.draft.day,it.si);
-    if(n){it.ex=n.ex;it.sets=newSets(n,it.sets.length);it.fb='';save();render();}return;
+  if(a==='swap'){UI.sw=(UI.sw&&UI.sw.k==='draft'&&UI.sw.i===+d.i)?null:{k:'draft',i:+d.i};render();return;}
+  if(a==='swapplan'){UI.sw=(UI.sw&&UI.sw.k==='plan'&&UI.sw.d===+d.d&&UI.sw.s===+d.s)?null:{k:'plan',d:+d.d,s:+d.s};render();return;}
+  if(a==='swclose'){UI.sw=null;render();return;}
+  if(a==='swall'){UI.sw.all=!UI.sw.all;render();return;}
+  if(a==='swpick'){
+    const w=UI.sw;if(!w)return;
+    const di=w.k==='draft'?S.draft.day:w.d,si=w.k==='draft'?S.draft.items[w.i].si:w.s;
+    const n=mkSlot(X[d.ex],S.profile);S.plan.days[di].slots[si]=n;
+    if(S.draft&&S.draft.day===di)S.draft.items.forEach(function(it){if(it.si===si&&it.ex!==d.ex){it.ex=d.ex;it.sets=newSets(n,it.sets.length);it.fb='';}});
+    UI.sw=null;save();render();return;
   }
-  if(a==='swapplan'){
-    if(S.draft&&S.draft.day===+d.d){UI.tab='plan';}
-    swapSlot(S.plan,S.profile,+d.d,+d.s);
-    if(S.draft&&S.draft.day===+d.d){S.draft=null;}
-    save();render();return;
+  if(a==='mvplan'){
+    const di=+d.d,si=+d.s,t=si+(+d.dir),sl=S.plan.days[di].slots;
+    if(t<0||t>=sl.length)return;
+    const x=sl[si];sl[si]=sl[t];sl[t]=x;
+    if(S.draft&&S.draft.day===di)S.draft.items.forEach(function(it){if(it.si===si)it.si=t;else if(it.si===t)it.si=si;});
+    UI.sw=null;save();render();return;
+  }
+  if(a==='mvsess'){
+    const i=+d.i,t=i+(+d.dir),it=S.draft.items;
+    if(t<0||t>=it.length)return;
+    const x=it[i];it[i]=it[t];it[t]=x;UI.pl=null;UI.rv=null;UI.sw=null;save();render();return;
   }
   if(a==='rv'){UI.rv=(UI.rv===+d.i)?null:+d.i;UI.review=null;render();return;}
   if(a==='finish'){finish();return;}
