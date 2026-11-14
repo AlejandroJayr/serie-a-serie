@@ -1,4 +1,4 @@
-# Serie a Serie
+# ALFAYO
 
 App de ejercicios adaptable, en español. Un solo `index.html`, sin dependencias ni servidor; los datos se guardan en el dispositivo (localStorage).
 
