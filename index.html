@@ -194,6 +194,7 @@ button.li{width:100%;border:0;text-align:left;font:inherit;color:inherit;cursor:
 a.btn{display:inline-flex;align-items:center;justify-content:center;text-decoration:none}
 .rst{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:14px;padding:6px 6px 6px 14px}.rst span{flex:1}
 .cue .demo,.cue .demo2{max-width:300px;margin:0 auto;width:100%}.cue>svg,.cue svg[aria-label^="Músculos"]{max-width:220px;margin:0 auto;display:block}.cue{font-size:14px;gap:8px}
+.acts{gap:6px!important}.acts .btn.sm{padding:0 10px;font-size:14px;white-space:nowrap;flex:1 1 auto;min-width:0}.acts .btn.mv{flex:0 0 40px;width:40px;padding:0}
 </style>
 </head>
 <body>
@@ -870,7 +871,7 @@ function beep(){
 function notify(){
   try{
     if(!('Notification' in window)||Notification.permission!=='granted')return;
-    const t='Descanso terminado',o={body:'Toca para seguir con tu siguiente serie.',icon:'icon-192.png',tag:'alfayo-rest',renotify:true,vibrate:[250,120,250]};
+    const t='Descanso terminado',o={body:'Toca para seguir con tu siguiente serie.',icon:'icon-192.png',badge:'badge-96.png',tag:'alfayo-rest',renotify:true,vibrate:[250,120,250]};
     if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification(t,o);else new Notification(t,o);}).catch(function(){new Notification(t,o);});}
     else new Notification(t,o);
   }catch(e){}
@@ -1282,7 +1283,7 @@ function vPlan(){
   h+='<section class="card planhd"><h2>'+esc(d.name)+'</h2><p class="mute">'+d.slots.length+' ejercicios · '+p.min+' min</p></section><section class="plain">';
   d.slots.forEach(function(s,si){
     const e=X[s.ex];
-    h+='<div class="slot card2"><div class="ex-row" style="flex-direction:column;align-items:stretch"><div class="pr2"><div class="ph lg">'+thumb(s.ex)+'</div><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:700;font-size:17px">'+e.n+'</span><span class="small mute">'+lineFor(s)+'</span>'+gearLine(e)+'</div></div><div class="row" style="flex-wrap:wrap;gap:6px"><button class="btn ghost sm" data-act="cue" data-ex="'+s.ex+'" aria-pressed="'+(UI.cue[s.ex]===true)+'">Ver técnica</button><button class="btn ghost sm" data-act="swapplan" data-d="'+di+'" data-s="'+si+'" aria-label="Cambiar ejercicio">'+IC.swap+' Cambiar</button>'+arrowBtn('mvplan',-1,'data-d="'+di+'" data-s="'+si+'"',si===0)+arrowBtn('mvplan',1,'data-d="'+di+'" data-s="'+si+'"',si===d.slots.length-1)+'</div></div>'+(UI.sw&&UI.sw.k==='plan'&&UI.sw.d===di&&UI.sw.s===si?swapPicker('plan',di,si,s.ex):'')+(UI.cue[s.ex]===true?guideBox(e):'')+'</div>';
+    h+='<div class="slot card2"><div class="ex-row" style="flex-direction:column;align-items:stretch"><div class="pr2"><div class="ph lg">'+thumb(s.ex)+'</div><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:700;font-size:17px">'+e.n+'</span><span class="small mute">'+lineFor(s)+'</span>'+gearLine(e)+'</div></div><div class="row acts" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="cue" data-ex="'+s.ex+'" aria-pressed="'+(UI.cue[s.ex]===true)+'">Técnica</button><button class="btn ghost sm" data-act="swapplan" data-d="'+di+'" data-s="'+si+'" aria-label="Cambiar ejercicio">'+IC.swap+' Cambiar</button>'+arrowBtn('mvplan',-1,'data-d="'+di+'" data-s="'+si+'"',si===0)+arrowBtn('mvplan',1,'data-d="'+di+'" data-s="'+si+'"',si===d.slots.length-1)+'</div></div>'+(UI.sw&&UI.sw.k==='plan'&&UI.sw.d===di&&UI.sw.s===si?swapPicker('plan',di,si,s.ex):'')+(UI.cue[s.ex]===true?guideBox(e):'')+'</div>';
   });
   return h+'</section>';
 }
@@ -1536,7 +1537,7 @@ function vAjustes(){
    h+='<button class="btn ghost sm" data-act="altest" style="align-self:flex-start">Probar alerta</button>';
    if(np==='na')h+='<p class="small mute">Este navegador no permite notificaciones. En iPhone funcionan solo con la app instalada en la pantalla de inicio (iOS 16.4 o más nuevo).</p>';
    else if(np==='denied')h+='<p class="small mute">Bloqueaste las notificaciones. Actívalas en los ajustes del navegador o del teléfono para ALFAYO.</p>';
-   else h+='<p class="small mute">La notificación llega cuando la app está en segundo plano. En iPhone, si cierras la app por completo o se bloquea mucho tiempo, puede no sonar: déjala abierta durante la sesión.</p>';
+   else h+='<p class="small mute">'+(/Android/i.test(navigator.userAgent)?'La notificación llega aunque cambies de app. Durante la sesión la pantalla se mantiene encendida; si la apagas a mano, el aviso puede tardar unos segundos.':'La notificación llega cuando la app está en segundo plano. En iPhone, si cierras la app por completo o se bloquea mucho tiempo, puede no sonar: déjala abierta durante la sesión.')+'</p>';
    h+='</section>';}
   h+='<section class="card"><span class="label">Respaldo</span><p class="small mute">'+(storeOK?'Tus datos se guardan en este navegador, en este dispositivo.':'Este navegador no permite guardar datos; haz un respaldo seguido.')+' Copia el respaldo y pégalo después aquí para recuperarlo.</p><textarea id="bk" aria-label="Respaldo">'+UI.bk+'</textarea><div class="row"><button class="btn ghost sm" data-act="bkcopy">Copiar respaldo</button><button class="btn ghost sm" data-act="bkrestore">Restaurar desde el cuadro</button></div></section>';
   h+='<section class="card"><span class="label">Borrar todo</span>'+(UI.confirm?'<p>Se borrarán tu plan, pesos e historial.</p><div class="row"><button class="btn bad sm" data-act="wipe">Sí, borrar</button><button class="btn ghost sm" data-act="nowipe">Cancelar</button></div>':'<button class="btn ghost" data-act="askwipe">Borrar todos mis datos</button>')+'</section>';
@@ -1556,7 +1557,31 @@ function renderInner(){
   app.dataset.v=UI.tab;app.innerHTML={hoy:vHoy,plan:vPlan,progreso:vProgreso,cuerpo:vCuerpo,ajustes:vAjustes}[UI.tab]();
 }
 
-function render(){renderInner();startDemos();}
+function render(){renderInner();startDemos();navGuard();wakeSync();}
+/* Android: botón Atrás navega dentro de la app en vez de cerrarla */
+function navDepth(){return (UI.wu!=null||UI.inSession||UI.summary||UI.sw||UI.pl)?2:(UI.tab!=='hoy'?1:0);}
+let navSkip=false;
+function navGuard(){try{const g=history.state&&history.state.alf,d=navDepth();if(d>0&&!g)history.pushState({alf:1},'');else if(d===0&&g){navSkip=true;history.back();}}catch(e){}}
+window.addEventListener('popstate',function(){
+  if(navSkip){navSkip=false;return;}
+  if(UI.sw){UI.sw=null;}
+  else if(UI.pl){UI.pl=null;}
+  else if(UI.wu!=null){UI.wu=null;}
+  else if(UI.summary){UI.summary=null;UI.tab='hoy';}
+  else if(UI.inSession){UI.inSession=false;}
+  else if(UI.tab!=='hoy'){UI.tab='hoy';}
+  render();window.scrollTo(0,0);
+});
+/* Mantener la pantalla encendida durante la sesión (Android Chrome) */
+let WL=null;
+function wakeSync(){
+  const want=!!(UI.inSession&&S&&S.draft)&&document.visibilityState==='visible';
+  try{
+    if(want&&!WL&&navigator.wakeLock){navigator.wakeLock.request('screen').then(function(l){WL=l;l.addEventListener('release',function(){WL=null;});}).catch(function(){});}
+    else if(!want&&WL){WL.release();WL=null;}
+  }catch(e){}
+}
+document.addEventListener('visibilitychange',wakeSync);
 /* ---------- eventos ---------- */
 document.addEventListener('input',function(ev){
   const t=ev.target;
