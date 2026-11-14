@@ -181,6 +181,13 @@ label.btn{display:inline-flex;align-items:center;justify-content:center;cursor:p
 #app[data-v="progreso"]>section.card:nth-of-type(2){background:var(--card)}
 .ph{overflow:hidden}.ph img{width:100%;height:100%;object-fit:cover;display:block}.pr2{display:flex;gap:14px;align-items:flex-start}.ph.lg{width:84px;height:84px;flex:0 0 84px;border-radius:16px;background:var(--chip);display:grid;place-items:center;color:var(--mute)}
 button.li{width:100%;border:0;text-align:left;font:inherit;color:inherit;cursor:pointer}.li .chv{transition:transform .15s}.li[aria-expanded="true"] .chv{transform:rotate(90deg)}.lw{display:flex;flex-direction:column;gap:8px}.lw .cue{background:var(--card)}
+.sbar{height:10px;border-radius:99px;background:var(--chip);overflow:hidden}.sbar i{display:block;height:100%;background:var(--lime);border-radius:99px;transition:width .2s}
+.ph.sm{width:52px;height:52px;flex:0 0 52px;border-radius:14px;background:var(--chip);display:grid;place-items:center;color:var(--mute)}
+.card.exdone{box-shadow:inset 0 0 0 2px var(--ok)}
+.note2{display:flex;flex-direction:column;gap:4px}.note2 textarea{min-height:44px;font:15px/1.4 var(--body);resize:vertical}
+.set.wp{grid-template-columns:26px 64px 1fr 1fr 52px}
+.sethd{display:grid;grid-template-columns:26px 64px 1fr 1fr 52px;gap:8px;font-size:12px;font-weight:600;color:var(--mute);text-transform:uppercase;letter-spacing:.03em}.sethd span:nth-child(n+3){text-align:center}
+.pv{font-size:14px;color:var(--mute);text-align:center;font-variant-numeric:tabular-nums}
 </style>
 </head>
 <body>
@@ -747,7 +754,7 @@ function histEx(ex){
   let mw=0,msc=0,last=null,n=0;
   S.log.forEach(function(l){l.items.forEach(function(it){
     if(it.ex!==ex||!it.sets.length)return;
-    n++;last={t:l.t,sets:it.sets};
+    n++;last={t:l.t,sets:it.sets,note:it.note};
     it.sets.forEach(function(q){if(q.w>mw)mw=q.w;});
     const b=bestSc(ex,it.sets);if(b>msc)msc=b;
   });});
@@ -830,7 +837,7 @@ function finish(){
     }
     adj.push({n:e.n,msg:out.msg,plat:!out.adv&&plateau(hist)});
   });
-  const logIt=D.items.map(function(it){return {ex:it.ex,fb:it.fb,sets:it.sets.filter(function(s){return s.done;}).map(function(s){return {w:parseFloat(s.w)||0,r:parseInt(s.r,10)||0};})};});
+  const logIt=D.items.map(function(it){return {ex:it.ex,fb:it.fb,note:(it.note||'').trim()||undefined,sets:it.sets.filter(function(s){return s.done;}).map(function(s){return {w:parseFloat(s.w)||0,r:parseInt(s.r,10)||0};})};});
   S.log.push({t:Date.now(),day:D.day,name:S.plan.days[D.day].name,ready:D.ready,items:logIt,prs:prs.length,dur:(dur>=5&&dur<=300)?dur:null});
   const cy=cycl();if(cy.indexOf(D.day)<0)cy.push(D.day);
   if(cy.length>=S.plan.days.length)S.cyc=[];
@@ -1083,12 +1090,18 @@ function swapPicker(k,di,si,curEx){
 }
 function vSesion(){
   const D=S.draft,d=S.plan.days[D.day];
-  let h='<header class="row between"><div><span class="label">'+(D.ready==='cansado'?'Sesión ligera':'Sesión en curso')+'</span><h1>'+d.name+'</h1><span class="small mute">Llevas <b id="el">'+fm((Date.now()-D.t)/60000)+'</b> · empezaste a las '+new Date(D.t).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})+'</span></div><button class="btn ghost sm" data-act="leave">Salir</button></header>';
+  const nEx=D.items.length,nDone=D.items.filter(function(it){return it.sets.length&&it.sets.every(function(x){return x.done;});}).length;
+  let h='<div class="sbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+nEx+'" aria-valuenow="'+nDone+'" aria-label="Ejercicios terminados"><i style="width:'+(nEx?nDone/nEx*100:0)+'%"></i></div><p class="small mute" style="margin-top:-8px">'+nDone+' de '+nEx+' ejercicios terminados</p>';
+  h+='<header class="row between"><div><span class="label">'+(D.ready==='cansado'?'Sesión ligera':'Sesión en curso')+'</span><h1>'+d.name+'</h1><span class="small mute">Llevas <b id="el">'+fm((Date.now()-D.t)/60000)+'</b> · empezaste a las '+new Date(D.t).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})+'</span></div><button class="btn ghost sm" data-act="leave">Salir</button></header>';
   D.items.forEach(function(it,i){
     const e=X[it.ex],p=S.prog[it.ex],open=UI.cue[it.ex]!==false;
-    h+='<section class="card"><div class="row between"><h3>'+e.n+'</h3><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="swap" data-i="'+i+'">Cambiar</button>'+arrowBtn('mvsess',-1,'data-i="'+i+'"',i===0)+arrowBtn('mvsess',1,'data-i="'+i+'"',i===D.items.length-1)+'</div></div>';
+    const U=unitOf(it.ex),H=histEx(it.ex);
+    const allDone=it.sets.length&&it.sets.every(function(x){return x.done;});
+    h+='<section class="card'+(allDone?' exdone':'')+'"><div class="row" style="flex-wrap:nowrap;gap:12px;min-width:0"><div class="ph sm">'+thumb(it.ex)+'</div><div style="min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start"><h3>'+e.n+'</h3>'+(allDone?'<span class="pill ok">✓ Listo</span>':'')+'</div></div><div><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="swap" data-i="'+i+'">Cambiar</button>'+arrowBtn('mvsess',-1,'data-i="'+i+'"',i===0)+arrowBtn('mvsess',1,'data-i="'+i+'"',i===D.items.length-1)+'</div></div>';
+    h+='<label class="note2"><span class="label">Notas</span><textarea data-note="'+i+'" rows="1" placeholder="Agregar notas… (asiento, agarre, sensaciones)">'+esc(it.note||'')+'</textarea></label>';
+    const pn=H.n&&H.last&&H.last.note;if(pn)h+='<p class="small mute">Nota anterior: '+esc(pn)+'</p>';
     if(UI.sw&&UI.sw.k==='draft'&&UI.sw.i===i)h+=swapPicker('draft',D.day,it.si,it.ex);
-    const U=unitOf(it.ex),H=histEx(it.ex),sl=slotOf(it),zona=sl.hi<=6?'Fuerza':(sl.hi<=15?'Hipertrofia':'Resistencia');
+    const sl=slotOf(it),zona=sl.hi<=6?'Fuerza':(sl.hi<=15?'Hipertrofia':'Resistencia');
     h+='<div style="display:flex;flex-direction:column;gap:4px">'+presc(it)+'</div>';
     h+=gearLine(e);
     if(isPlate(e)&&S.plates&&S.plates[it.ex])h+='<p class="small mute">Discos la última vez: <b>'+plTxt(S.plates[it.ex])+'</b></p>';
@@ -1098,9 +1111,11 @@ function vSesion(){
     h+='<div class="chips"><button class="chip" style="min-height:36px" data-act="cue" data-ctx="s" data-ex="'+it.ex+'" aria-pressed="'+!!open+'">Cómo se hace</button>'+(e.step?'<button class="chip" style="min-height:36px" data-act="exu" data-ex="'+it.ex+'" data-v="'+(U==='kg'?'lb':'kg')+'" aria-label="Cambiar a '+(U==='kg'?'libras':'kilos')+'">Pesos en '+U+' · cambiar</button>':'')+(isPlate(e)?'<button class="chip" style="min-height:36px" data-act="plopen" data-i="'+i+'" aria-pressed="'+(!!UI.pl&&UI.pl.i===i)+'">Discos</button>':'')+'<button class="chip" style="min-height:36px" data-act="rv" data-i="'+i+'" aria-pressed="'+(UI.rv===i)+'">Revisar mi técnica</button></div>';
     if(open)h+=guideBox(e);
     if(UI.rv===i)h+=rvPanel(i);
+    if(H.n&&H.last&&H.last.sets&&H.last.sets.length)h+='<div class="sethd"><span>#</span><span>Anterior</span><span>'+(e.step?U:'')+'</span><span>'+(e.u==='s'?'Seg':'Reps')+'</span><span></span></div>';
     it.sets.forEach(function(s,j){
       const ph=e.step?(p&&p.w!=null?dw(p.w,U):U):'';
-      h+='<div class="set'+(s.done?' done':'')+'"><span class="n">'+(j+1)+'</span>'+
+      const pv=H.n&&H.last&&H.last.sets?H.last.sets[j]:null;
+      h+='<div class="set'+(s.done?' done':'')+(H.n&&H.last&&H.last.sets&&H.last.sets.length?' wp':'')+'"><span class="n">'+(j+1)+'</span>'+(H.n&&H.last&&H.last.sets&&H.last.sets.length?'<span class="pv">'+(pv?(e.step?dw(pv.w,U)+' × ':'')+pv.r:'—')+'</span>':'')+
       (e.step?'<label class="f"><input id="w-'+i+'-'+j+'" type="number" inputmode="decimal" step="any" min="0" data-f="w" data-i="'+i+'" data-j="'+j+'" value="'+(s.w===''||s.w==null?'':dw(s.w,U))+'" placeholder="'+ph+'" aria-label="Peso serie '+(j+1)+'"><span>'+U+'</span></label>':'<span class="f ghost"></span>')+
       '<label class="f"><input id="r-'+i+'-'+j+'" type="number" inputmode="numeric" min="0" data-f="r" data-i="'+i+'" data-j="'+j+'" value="'+s.r+'" placeholder="'+tgtReps(it)+'" aria-label="'+(e.u==='s'?'Segundos':'Repeticiones')+' serie '+(j+1)+'"><span>'+(e.u==='s'?'seg':'reps')+'</span></label>'+
       '<button class="chk" data-act="chk" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+s.done+'" aria-label="Serie '+(j+1)+' hecha"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" style="display:block;margin:auto"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
@@ -1230,6 +1245,9 @@ function vProgreso(){
   const mxd=Math.max(1,Math.max.apply(null,dayN));
   h+='<section class="card"><div><span class="big">'+mLogs.length+'</span><p class="mute">sesiones este mes</p></div><div class="dbars" role="img" aria-label="Sesiones de esta semana por día">'+['L','M','X','J','V','S','D'].map(function(L,i){return '<div><i class="'+(dayN[i]?'on':'')+'" style="height:'+(14+dayN[i]/mxd*56)+'px"></i><span>'+L+'</span></div>';}).join('')+'</div></section>';
   h+='<div class="two"><section class="card"><span class="big" style="font-size:28px">'+(vM?fw(vM).replace(/\.0+(?=\D|$)/,''):'—')+'</span><p class="small mute">Volumen total este mes</p></section><section class="card"><span class="pill ok" style="align-self:flex-start;font-size:15px">'+(vP>0&&vM>0?((vM>=vP?'+':'')+Math.round((vM/vP-1)*100)+'%'):'—')+'</span><p class="small mute">'+(vP>0?'Respecto al mes anterior':'Sin mes anterior con qué comparar')+'</p></section></div>';
+  {const w4=wk(Date.now())-21*864e5,n4=S.log.filter(function(l){return l.t>=w4;}).length,g4=S.profile.dias*4,cons=Math.min(100,Math.round(n4/g4*100));
+   const prw=S.log.filter(function(l){return l.t>=w0;}).reduce(function(a,l){return a+(l.prs||0);},0);
+   h+='<section class="card"><div class="row between" style="flex-wrap:nowrap"><div><span class="label">Constancia</span><div><span class="big" style="font-size:32px">'+cons+'%</span></div><p class="small mute">'+n4+' de '+g4+' sesiones en las últimas 4 semanas</p></div><div style="text-align:center"><span class="pill warn" style="font-size:15px">🏆 '+prw+'</span><p class="small mute" style="margin-top:4px">Récords<br>esta semana</p></div></div></section>';}
   const cur=wk(Date.now()),W=[];
   for(let i=7;i>=0;i--){const t=new Date(cur);t.setDate(t.getDate()-7*i);W.push(t.getTime());}
   const cnt=W.map(function(t){return S.log.filter(function(l){return wk(l.t)===t;}).length;});
@@ -1477,6 +1495,7 @@ function render(){renderInner();startDemos();}
 document.addEventListener('input',function(ev){
   const t=ev.target;
   if(t.dataset&&t.dataset.sm){const l=S.log[S.log.length-1];if(l){const x=parseInt(t.value,10);l[t.dataset.sm]=(isNaN(x)||x<=0)?null:x;save();}return;}
+  if(t.dataset&&t.dataset.note!=null&&S&&S.draft){const it=S.draft.items[+t.dataset.note];if(it){it.note=t.value.slice(0,300);save();}return;}
   if(t.dataset&&t.dataset.bf&&UI.bf){UI.bf[t.dataset.bf]=t.value;return;}
   if(!t.dataset||!t.dataset.f||!S||!S.draft)return;
   let v=t.value;
