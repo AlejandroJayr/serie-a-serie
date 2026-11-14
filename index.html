@@ -856,12 +856,31 @@ function finish(){
 let tmr=null,tEnd=0;
 function startTimer(sec){
   tEnd=Date.now()+sec*1000;$('#timer').style.display='flex';tick();
+  clearTimeout(window._tto);window._tto=setTimeout(function(){if(Date.now()>=tEnd-50)tick();},sec*1000+30);
   clearInterval(tmr);tmr=setInterval(tick,250);
 }
+let AC=null,tDone=0;
+function al(){return Object.assign({snd:true,ntf:false},S&&S.al||{});}
+function unlockAudio(){try{if(!AC){const C=window.AudioContext||window.webkitAudioContext;if(C)AC=new C();}if(AC&&AC.state==='suspended')AC.resume();}catch(e){}}
+document.addEventListener('pointerdown',unlockAudio,true);
+function beep(){
+  if(!AC)return;try{if(AC.state==='suspended')AC.resume();
+  [0,0.28,0.56].forEach(function(t,i){const o=AC.createOscillator(),g=AC.createGain(),t0=AC.currentTime+t;o.type='sine';o.frequency.value=i===2?1175:880;g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.5,t0+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+0.22);o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+0.25);});}catch(e){}
+}
+function notify(){
+  try{
+    if(!('Notification' in window)||Notification.permission!=='granted')return;
+    const t='Descanso terminado',o={body:'Toca para seguir con tu siguiente serie.',icon:'icon-192.png',tag:'alfayo-rest',renotify:true,vibrate:[250,120,250]};
+    if(navigator.serviceWorker&&navigator.serviceWorker.getRegistration){navigator.serviceWorker.getRegistration().then(function(r){if(r)r.showNotification(t,o);else new Notification(t,o);}).catch(function(){new Notification(t,o);});}
+    else new Notification(t,o);
+  }catch(e){}
+}
+function alertEnd(){if(tDone===tEnd)return;tDone=tEnd;const a=al();if(a.snd)beep();if(a.ntf&&document.visibilityState==='hidden')notify();}
+document.addEventListener('visibilitychange',function(){if(document.visibilityState==='visible'&&tEnd&&$('#timer').style.display==='flex')tick();});
 function tick(){
   const left=Math.max(0,Math.ceil((tEnd-Date.now())/1000));
   $('#tv').textContent=Math.floor(left/60)+':'+String(left%60).padStart(2,'0');
-  if(left===0){clearInterval(tmr);try{navigator.vibrate&&navigator.vibrate(200);}catch(e){}setTimeout(function(){if(Date.now()>=tEnd)$('#timer').style.display='none';},4000);}
+  if(left===0){clearInterval(tmr);alertEnd();try{navigator.vibrate&&navigator.vibrate([250,120,250]);}catch(e){}setTimeout(function(){if(Date.now()>=tEnd)$('#timer').style.display='none';},4000);}
 }
 function stopTimer(){clearInterval(tmr);$('#timer').style.display='none';}
 
@@ -1512,6 +1531,13 @@ function vAjustes(){
   let h='<header><h1>Ajustes</h1></header>';
   h+='<section class="card"><span class="label">Tu perfil</span><p>'+GOALS[p.objetivo].n+' · '+SPLS[p.split||'auto']+' · '+NIVELES[p.nivel][0]+' · '+p.dias+' días · '+p.min+' min · '+EQUIPOS[p.equipo][0]+'</p><button class="btn ghost" data-act="redo">Cambiar mi perfil y rehacer el plan</button><p class="small mute">Conservas tu historial y tus pesos de los ejercicios que sigan en el plan.</p></section>';
   h+='<section class="card"><span class="label">Unidad de peso</span><div class="chips">'+[['kg','Kilos (kg)'],['lb','Libras (lb)']].map(function(u){return '<button class="chip" data-act="unit" data-v="'+u[0]+'" aria-pressed="'+(UNIT===u[0])+'">'+u[1]+'</button>';}).join('')+'</div><p class="small mute">Cambia solo cómo ves los pesos; tu historial se conserva. En libras, los saltos de peso son de 5 lb (o 2.5 lb en ejercicios pequeños).</p></section>';
+  {const a=al(),np=('Notification' in window)?Notification.permission:'na';
+   h+='<section class="card"><span class="label">Alertas del descanso</span><div class="chips"><button class="chip" data-act="alsnd" aria-pressed="'+a.snd+'">🔔 Sonido '+(a.snd?'activado':'apagado')+'</button><button class="chip" data-act="alntf" aria-pressed="'+(a.ntf&&np==='granted')+'">📲 Notificación '+(a.ntf&&np==='granted'?'activada':'apagada')+'</button></div>';
+   h+='<button class="btn ghost sm" data-act="altest" style="align-self:flex-start">Probar alerta</button>';
+   if(np==='na')h+='<p class="small mute">Este navegador no permite notificaciones. En iPhone funcionan solo con la app instalada en la pantalla de inicio (iOS 16.4 o más nuevo).</p>';
+   else if(np==='denied')h+='<p class="small mute">Bloqueaste las notificaciones. Actívalas en los ajustes del navegador o del teléfono para ALFAYO.</p>';
+   else h+='<p class="small mute">La notificación llega cuando la app está en segundo plano. En iPhone, si cierras la app por completo o se bloquea mucho tiempo, puede no sonar: déjala abierta durante la sesión.</p>';
+   h+='</section>';}
   h+='<section class="card"><span class="label">Respaldo</span><p class="small mute">'+(storeOK?'Tus datos se guardan en este navegador, en este dispositivo.':'Este navegador no permite guardar datos; haz un respaldo seguido.')+' Copia el respaldo y pégalo después aquí para recuperarlo.</p><textarea id="bk" aria-label="Respaldo">'+UI.bk+'</textarea><div class="row"><button class="btn ghost sm" data-act="bkcopy">Copiar respaldo</button><button class="btn ghost sm" data-act="bkrestore">Restaurar desde el cuadro</button></div></section>';
   h+='<section class="card"><span class="label">Borrar todo</span>'+(UI.confirm?'<p>Se borrarán tu plan, pesos e historial.</p><div class="row"><button class="btn bad sm" data-act="wipe">Sí, borrar</button><button class="btn ghost sm" data-act="nowipe">Cancelar</button></div>':'<button class="btn ghost" data-act="askwipe">Borrar todos mis datos</button>')+'</section>';
   return h;
@@ -1557,6 +1583,11 @@ document.addEventListener('click',function(ev){
   if(a==='pday'){UI.pd=+d.i;UI.sw=null;render();return;}
   if(a==='tab'){UI.tab=d.v;UI.sw=null;render();window.scrollTo(0,0);return;}
   if(a==='ready'){UI.ready=d.v;render();return;}
+  if(a==='alsnd'){S.al=al();S.al.snd=!S.al.snd;save();if(S.al.snd){unlockAudio();beep();}render();return;}
+  if(a==='alntf'){S.al=al();if(S.al.ntf&&('Notification' in window)&&Notification.permission==='granted'){S.al.ntf=false;save();render();return;}
+    if(!('Notification' in window)){render();return;}
+    Notification.requestPermission().then(function(p){S.al=al();S.al.ntf=p==='granted';save();render();}).catch(function(){render();});return;}
+  if(a==='altest'){unlockAudio();const x=al();if(x.snd)beep();try{navigator.vibrate&&navigator.vibrate([250,120,250]);}catch(e){}if(x.ntf)notify();return;}
   if(a==='start'){UI.wu=null;startSession();return;}
   if(a==='wu'){UI.wu=0;render();window.scrollTo(0,0);return;}
   if(a==='wugo'){UI.wu=+d.i;render();window.scrollTo(0,0);return;}
