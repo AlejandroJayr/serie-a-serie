@@ -9,33 +9,39 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Serie a Serie">
-<meta name="theme-color" content="#faf6f1">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%23d93a18'/%3E%3Crect x='9' y='26' width='8' height='13' rx='4' fill='%23fff'/%3E%3Crect x='20' y='18' width='8' height='21' rx='4' fill='%23fff'/%3E%3Crect x='31' y='9' width='8' height='30' rx='4' fill='%23ffc933'/%3E%3C/svg%3E">
+<meta name="theme-color" content="#f3f4f6">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%2316181d'/%3E%3Crect x='9' y='26' width='8' height='13' rx='4' fill='%23bde3f2'/%3E%3Crect x='20' y='18' width='8' height='21' rx='4' fill='%23cfeccf'/%3E%3Crect x='31' y='9' width='8' height='30' rx='4' fill='%23c9f23a'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
 :root{
-  /* Identidad Serie a Serie: crema cálido, coral como color de marca, amarillo sol de apoyo; Bricolage Grotesque en títulos. */
-  --bg:#faf6f1; --card:#ffffff; --ink:#241a14; --mute:#6b5d54; --line:#f0e3d3; --rule:#f3e8da; --control:#e2d1bd; --chip:#fdebd6;
-  --acc:#d93a18; --acc-ink:#ffffff; --sun:#ffc933; --ok:#237a3b; --warn:#92400e; --bad:#b42318;
-  --pill-warn:#fff1c9; --pill-ok:#d9f5df; --pill-ok-ink:#0b3a1a;
+  /* Identidad fitness pastel: fondo gris perla, bloques de color suave por zona (menta, cielo, lavanda, mantequilla, durazno), botón oscuro y lima para lo activo. */
+  --bg:#f3f4f6; --card:#ffffff; --ink:#16181d; --mute:#5f6670; --line:#e6e8ec; --rule:#eceef1; --control:#d5d9df; --chip:#e9ebef;
+  --acc:#16181d; --acc-ink:#ffffff; --lime:#c9f23a; --lime-ink:#1b2300;
+  --mint:#cfeccf; --sky:#bde3f2; --lav:#dcd3f7; --but:#fbeba6; --peach:#f8c4b3;
+  --ok:#237a3b; --warn:#92400e; --bad:#b42318;
+  --pill-warn:#fbeba6; --pill-ok:#cfeccf; --pill-ok-ink:#0b3a1a;
   --disp:'Bricolage Grotesque','Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   --body:'Instrument Sans',system-ui,-apple-system,'Segoe UI',sans-serif;
   color-scheme:light;
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
-    --bg:#17110d; --card:#221a14; --ink:#fbeee0; --mute:#b9a798; --line:#33271e; --rule:#33271e; --control:#4a3a2d; --chip:#2e231b;
-    --acc:#ff7a59; --acc-ink:#2a0d04; --sun:#ffd24d; --ok:#6fd48a; --warn:#f0b35a; --bad:#ff8a80;
-    --pill-warn:#33270f; --pill-ok:#17331f; --pill-ok-ink:#cdf3d6;
+    --bg:#0f1114; --card:#191c21; --ink:#f1f3f5; --mute:#a3aab3; --line:#2a2e35; --rule:#262a30; --control:#3b4048; --chip:#23272d;
+    --acc:#c9f23a; --acc-ink:#1b2300; --lime:#c9f23a; --lime-ink:#1b2300;
+    --mint:#233a2b; --sky:#1f3844; --lav:#2f2a47; --but:#3d3718; --peach:#47281f;
+    --ok:#6fd48a; --warn:#f0b35a; --bad:#ff8a80;
+    --pill-warn:#3d3718; --pill-ok:#233a2b; --pill-ok-ink:#cdf3d6;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
-  --bg:#17110d; --card:#221a14; --ink:#fbeee0; --mute:#b9a798; --line:#33271e; --rule:#33271e; --control:#4a3a2d; --chip:#2e231b;
-  --acc:#ff7a59; --acc-ink:#2a0d04; --sun:#ffd24d; --ok:#6fd48a; --warn:#f0b35a; --bad:#ff8a80;
-  --pill-warn:#33270f; --pill-ok:#17331f; --pill-ok-ink:#cdf3d6;
+  --bg:#0f1114; --card:#191c21; --ink:#f1f3f5; --mute:#a3aab3; --line:#2a2e35; --rule:#262a30; --control:#3b4048; --chip:#23272d;
+  --acc:#c9f23a; --acc-ink:#1b2300; --lime:#c9f23a; --lime-ink:#1b2300;
+  --mint:#233a2b; --sky:#1f3844; --lav:#2f2a47; --but:#3d3718; --peach:#47281f;
+  --ok:#6fd48a; --warn:#f0b35a; --bad:#ff8a80;
+  --pill-warn:#3d3718; --pill-ok:#233a2b; --pill-ok-ink:#cdf3d6;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
@@ -49,7 +55,7 @@ h3{font-family:var(--body);font-weight:600;font-size:17px;line-height:1.25}
 p{margin:0}
 .mute{color:var(--mute)}
 .small{font-size:14px}
-.card{background:var(--card);border-radius:22px;padding:20px;display:flex;flex-direction:column;gap:14px}
+.card{background:var(--card);border-radius:28px;padding:22px;display:flex;flex-direction:column;gap:14px}
 .row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
 .between{justify-content:space-between}
 .grow{flex:1}
@@ -69,7 +75,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 .prc{background:color-mix(in srgb,var(--ok) 10%,var(--card))}
 .opt[disabled]{opacity:.4;cursor:default}
 .opt{position:relative}
-.opt[aria-pressed="true"]{background:var(--chip);border-color:transparent;padding-right:42px}
+.opt[aria-pressed="true"]{border-color:transparent;padding-right:42px}
 .opt[aria-pressed="true"]::after{content:"";position:absolute;top:16px;right:16px;width:18px;height:18px;background:var(--acc);-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10.5l4 4 8-9' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3E%3Cpath d='M4 10.5l4 4 8-9' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat}
 .opt b{font-weight:600}
 .opt span{color:var(--mute);font-size:14px;line-height:1.4}
@@ -115,7 +121,7 @@ button:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px soli
 #tabs{position:fixed;left:0;right:0;bottom:0;background:var(--bg);border-top:1px solid var(--line);display:flex;justify-content:center;padding:6px 8px calc(6px + env(safe-area-inset-bottom))}
 #tabs .in{display:flex;width:100%;max-width:560px;gap:4px}
 #tabs button{flex:1;min-height:48px;border:0;border-radius:999px;background:transparent;font:500 14px var(--body);color:var(--mute)}
-#tabs button[aria-current="page"]{color:var(--acc);background:var(--chip);font-weight:700}
+#tabs button[aria-current="page"]{color:var(--lime-ink);background:var(--lime);font-weight:700}
 #timer{position:fixed;left:12px;right:12px;bottom:calc(74px + env(safe-area-inset-bottom));max-width:536px;margin:0 auto;background:var(--ink);color:var(--bg);border-radius:20px;padding:12px 18px;display:none;align-items:center;justify-content:space-between;gap:12px;box-shadow:0 4px 18px rgba(0,0,0,.12)}
 #timer b{font:400 30px var(--body);font-variant-numeric:tabular-nums}
 #timer button{background:transparent;border:1px solid currentColor;color:inherit;border-radius:999px;min-height:38px;padding:0 16px;font-weight:600}
@@ -127,6 +133,17 @@ label.btn{display:inline-flex;align-items:center;justify-content:center;cursor:p
 @media (min-width:700px){h1{font-size:32px}}
 @media (max-width:380px){h1{font-size:25px}.big{font-size:34px}}
 @media (prefers-reduced-motion:no-preference){.btn,.chip,.opt,.chk{transition:background .15s,border-color .15s}}
+#app[data-v="hoy"]>section.card:nth-of-type(1){background:var(--mint)}
+#app[data-v="plan"]>section.card:nth-of-type(1){background:var(--sky)}
+#app[data-v="progreso"]>section.card:nth-of-type(1){background:var(--but)}
+#app[data-v="cuerpo"]>section.card:nth-of-type(1){background:var(--lav)}
+#app[data-v="hoy"]>section.card:nth-of-type(2){background:var(--sky)}
+#app[data-v="progreso"]>section.card:nth-of-type(2){background:var(--lav)}
+#app[data-v="cuerpo"]>section.card:nth-of-type(2){background:var(--mint)}
+.card .opt{background:var(--card)}
+.card .opt[aria-pressed="true"]{background:var(--mint);border-color:transparent}
+#app[data-v] .card .opt[aria-pressed="true"]{background:var(--card)}
+#app:not([data-v]) .card .opt[aria-pressed="true"]{background:var(--mint)}
 </style>
 </head>
 <body>
@@ -816,7 +833,7 @@ function splitSec(o){
   });
   return h+'</div><p class="small mute">Tus días: <b>'+L.names.join(' · ')+'</b></p></section>';
 }
-function brand(){return '<div class="row" style="gap:12px;flex-wrap:nowrap"><svg class="logo" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#d93a18"/><rect x="9" y="26" width="8" height="13" rx="4" fill="#fff"/><rect x="20" y="18" width="8" height="21" rx="4" fill="#fff"/><rect x="31" y="9" width="8" height="30" rx="4" fill="#ffc933"/></svg><span style="font:800 22px/1 var(--disp);letter-spacing:-.02em">Serie a Serie</span></div>';}
+function brand(){return '<div class="row" style="gap:12px;flex-wrap:nowrap"><svg class="logo" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#16181d"/><rect x="9" y="26" width="8" height="13" rx="4" fill="#bde3f2"/><rect x="20" y="18" width="8" height="21" rx="4" fill="#cfeccf"/><rect x="31" y="9" width="8" height="30" rx="4" fill="#c9f23a"/></svg><span style="font:800 22px/1 var(--disp);letter-spacing:-.02em">Serie a Serie</span></div>';}
 function vOnboard(){
   const o=UI.ob;
   return '<header style="display:flex;flex-direction:column;gap:14px">'+brand()+'<h1>Una serie a la vez.</h1><p class="mute">Tu plan de ejercicios se ajusta solo con lo que vas logrando.</p></header>'+
@@ -1384,7 +1401,7 @@ function renderInner(){
   if(UI.inSession&&S.draft){tabs.style.display='none';app.innerHTML=vSesion();return;}
   tabs.style.display='flex';
   $('#tabin').innerHTML=[['hoy','Hoy'],['plan','Plan'],['progreso','Progreso'],['cuerpo','Cuerpo'],['ajustes','Ajustes']].map(function(t){return '<button data-act="tab" data-v="'+t[0]+'"'+(UI.tab===t[0]?' aria-current="page"':'')+'>'+t[1]+'</button>';}).join('');
-  app.innerHTML={hoy:vHoy,plan:vPlan,progreso:vProgreso,cuerpo:vCuerpo,ajustes:vAjustes}[UI.tab]();
+  app.dataset.v=UI.tab;app.innerHTML={hoy:vHoy,plan:vPlan,progreso:vProgreso,cuerpo:vCuerpo,ajustes:vAjustes}[UI.tab]();
 }
 
 function render(){renderInner();startDemos();}
