@@ -10,7 +10,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="ALFAYO">
 <meta name="theme-color" content="#f3f4f6">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%2316181d'/%3E%3Crect x='9' y='26' width='8' height='13' rx='4' fill='%23bde3f2'/%3E%3Crect x='20' y='18' width='8' height='21' rx='4' fill='%23cfeccf'/%3E%3Crect x='31' y='9' width='8' height='30' rx='4' fill='%23c9f23a'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg%20xmlns=%22http://www.w3.org/2000/svg%22%20viewBox=%220%200%2048%2048%22%3E%3Crect%20width=%2248%22%20height=%2248%22%20rx=%2214%22%20fill=%22%2316181d%22/%3E%3Cg%20fill=%22%23c9f23a%22%20stroke=%22%23c9f23a%22%20stroke-width=%221.5%22%20stroke-linejoin=%22round%22%3E%3Cpath%20d=%22M8%2040.5C6%2033%209%2026%2015%2024C19%2022.5%2023%2023.5%2025.5%2027L26.5%2029.5L25%2018.5L33.5%2017L36%2033C36.8%2038%2034%2040.5%2029%2040.5Z%22/%3E%3Crect%20x=%2223.5%22%20y=%225.5%22%20width=%2212.5%22%20height=%2212%22%20rx=%225.5%22%20transform=%22rotate(-8%2029.7%2011.5)%22/%3E%3C/g%3E%3Cpath%20d=%22M25%2018.6L33.6%2017.3%22%20stroke=%22%2316181d%22%20stroke-width=%221.4%22%20stroke-linecap=%22round%22/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700;12..96,800&family=Instrument+Sans:wght@400;500;600&display=swap" rel="stylesheet">
@@ -833,7 +833,7 @@ function splitSec(o){
   });
   return h+'</div><p class="small mute">Tus días: <b>'+L.names.join(' · ')+'</b></p></section>';
 }
-function brand(){return '<div class="row" style="gap:12px;flex-wrap:nowrap"><svg class="logo" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#16181d"/><rect x="9" y="26" width="8" height="13" rx="4" fill="#bde3f2"/><rect x="20" y="18" width="8" height="21" rx="4" fill="#cfeccf"/><rect x="31" y="9" width="8" height="30" rx="4" fill="#c9f23a"/></svg><span style="font:800 22px/1 var(--disp);letter-spacing:.06em">ALFAYO</span></div>';}
+function brand(){return '<div class="row" style="gap:12px;flex-wrap:nowrap"><svg class="logo" viewBox="0 0 48 48" width="40" height="40" aria-hidden="true"><rect width="48" height="48" rx="14" fill="#16181d"/><g fill="#c9f23a" stroke="#c9f23a" stroke-width="1.5" stroke-linejoin="round"><path d="M8 40.5C6 33 9 26 15 24C19 22.5 23 23.5 25.5 27L26.5 29.5L25 18.5L33.5 17L36 33C36.8 38 34 40.5 29 40.5Z"/><rect x="23.5" y="5.5" width="12.5" height="12" rx="5.5" transform="rotate(-8 29.7 11.5)"/></g><path d="M25 18.6L33.6 17.3" stroke="#16181d" stroke-width="1.4" stroke-linecap="round"/></svg><span style="font:800 22px/1 var(--disp);letter-spacing:.06em">ALFAYO</span></div>';}
 function vOnboard(){
   const o=UI.ob;
   return '<header style="display:flex;flex-direction:column;gap:14px">'+brand()+'<h1>Una serie a la vez.</h1><p class="mute">Tu plan de ejercicios se ajusta solo con lo que vas logrando.</p></header>'+
