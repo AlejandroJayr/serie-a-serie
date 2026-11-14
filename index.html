@@ -931,7 +931,7 @@ function vHoy(){
   if(last)h+='<p class="small mute">Última: '+esc(last.name)+', '+dfmt(last.t)+(last.dur?' · '+fm(last.dur):'')+'.</p>';
   else h+='<p class="small mute">Tu primera sesión sirve para calibrar los pesos de cada ejercicio.</p>';
   h+='</section>';
-  h+='<section class="plain"><h2 style="margin:4px 4px 10px">Tu rutina</h2>'+d.slots.map(function(sl){const e=X[sl.ex];return '<div class="lw"><button class="li" data-act="cue" data-ex="'+sl.ex+'" aria-expanded="'+(UI.cue[sl.ex]===true)+'"><div class="ph">'+thumb(sl.ex)+'</div><div><b>'+e.n+'</b><p class="small mute">'+lineFor(sl)+'</p></div>'+IC.chev+'</button>'+(UI.cue[sl.ex]===true?guideBox(e):'')+'</div>';}).join('')+'</section>';
+  h+='<section class="plain"><h2 style="margin:4px 4px 10px">Tu rutina</h2>'+d.slots.map(function(sl){const e=X[sl.ex];return '<div class="lw"><button class="li" data-act="hoyli" data-ex="'+sl.ex+'" aria-expanded="'+(UI.hoyOpen===sl.ex)+'"><div class="ph">'+thumb(sl.ex)+'</div><div><b>'+e.n+'</b><p class="small mute">'+lineFor(sl)+'</p></div>'+IC.chev+'</button>'+(UI.hoyOpen===sl.ex?guideBox(e):'')+'</div>';}).join('')+'</section>';
   if(plats.length)h+='<section class="card"><span class="label">Atención</span>'+plats.map(function(k){return '<p class="note"><b>'+X[k].n+'</b> lleva varias sesiones sin mejorar. Prueba cambiarlo por otra variante en la pestaña Plan.</p>';}).join('')+'</section>';
   return h;
 }
@@ -1494,6 +1494,7 @@ document.addEventListener('click',function(ev){
   if(a==='mkplan'){
     S.profile=Object.assign({},UI.ob);S.unit=UI.ob.unit==='lb'?'lb':'kg';UNIT=S.unit;S.plan=genPlan(S.profile);S.next=0;S.cyc=[];UI.pick=null;S.draft=null;UI.ob=null;UI.tab='hoy';save();render();window.scrollTo(0,0);return;
   }
+  if(a==='hoyli'){UI.hoyOpen=UI.hoyOpen===d.ex?null:d.ex;render();return;}
   if(a==='pday'){UI.pd=+d.i;UI.sw=null;render();return;}
   if(a==='tab'){UI.tab=d.v;UI.sw=null;render();window.scrollTo(0,0);return;}
   if(a==='ready'){UI.ready=d.v;render();return;}
