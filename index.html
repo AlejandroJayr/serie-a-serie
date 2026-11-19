@@ -198,6 +198,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .mph{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:14px;padding:8px 8px 8px 10px}.mph img{width:48px;height:48px;border-radius:10px;object-fit:cover;flex:0 0 48px}
 .gopt{display:flex;gap:8px;align-items:center}.gopt .opt{flex:1;display:flex;gap:10px;align-items:center}.gopt .opt img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:0 0 44px}.gopt .mv{flex:0 0 44px;height:44px;display:grid;place-items:center}
 #toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:all .2s;z-index:50;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
+.rir{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:-2px 0 4px}.rir .small{color:var(--mute)}.rirb{display:flex;gap:4px}.rirb button{min-width:40px;height:36px;border-radius:10px;border:0;background:var(--chip);font:700 14px var(--body);color:var(--ink)}.rirb button[aria-pressed="true"]{background:var(--lime);color:var(--lime-ink)}
 </style>
 </head>
 <body>
@@ -464,7 +465,7 @@ function progress(e,slot,prev,sets,fb,tired){
   const sc=Math.max.apply(null,done.map(function(s){return e1(step?s.w:0,s.r);}));
   const out={w:step?w:null,target:lo,fails:prev?(prev.fails||0):0,msg:'',adv:null,hi:null,sc:sc};
   if(step&&(!prev||prev.w==null)){
-    const bestE=Math.max.apply(null,done.map(function(s){return s.w*(1+(s.r+RIR[fb||'bien'])/30);}));
+    const bestE=Math.max.apply(null,done.map(function(s){return s.w*(1+(s.r+(s.rir!=null?s.rir:RIR[fb||'bien']))/30);}));
     const t=lo+Math.ceil((hi-lo)/3);
     out.w=r5(bestE/(1+(t+2)/30),step);out.target=t;out.fails=0;
     out.msg='Calibrado: empieza en '+fw(out.w)+' y apunta a '+t+' reps.';
@@ -796,6 +797,8 @@ const EQUIPOS={gym:['Gimnasio completo','Barras, máquinas y poleas'],casa_man:[
 const SPL={auto:['Recomendado para mis días','Lo elige la app según cuántos días entrenas'],full:['Cuerpo completo','Todo el cuerpo en cada sesión'],ul:['Torso y pierna','Alterna tren superior e inferior'],ppl:['Empuje, tirón y pierna','Agrupa los movimientos por tipo'],grupo:['Por grupo muscular','Un grupo principal por día: pecho, espalda, pierna…']};
 const SPLS={auto:'Plan recomendado',full:'Cuerpo completo',ul:'Torso y pierna',ppl:'Empuje, tirón y pierna',grupo:'Por grupo muscular'};
 const FB=[['sobro','Me sobró mucho'],['bien','Bien'],['limite','Al límite'],['fallo','No pude']];
+const RIRO=[[0,'0','Al fallo'],[1,'1',''],[2,'2',''],[3,'3',''],[4,'4+','Muy fácil']];
+function fbOf(it){if(it.fb)return it.fb;const r=it.sets.filter(function(s){return s.done&&s.rir!=null;}).map(function(s){return s.rir;});if(!r.length)return '';const last=r[r.length-1];return last>=4?'sobro':last>=2?'bien':'limite';}
 function wk(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime();}
 function dfmt(t){return new Date(t).toLocaleDateString('es-MX',{day:'numeric',month:'short'});}
 function slotOf(it){return S.plan.days[S.draft.day].slots[it.si];}
@@ -822,10 +825,10 @@ function finish(){
   const dur=Math.round((Date.now()-(D.t||Date.now()))/60000);
   D.items.forEach(function(it){
     const e=X[it.ex],slot=S.plan.days[D.day].slots[it.si];
-    const sets=it.sets.filter(function(s){return s.done;}).map(function(s){return {w:parseFloat(s.w)||0,r:parseInt(s.r,10)||0};});
+    const sets=it.sets.filter(function(s){return s.done;}).map(function(s){return {w:parseFloat(s.w)||0,r:parseInt(s.r,10)||0,rir:s.rir!=null?s.rir:null};});
     if(sets.length){
       const H=histEx(it.ex),nsc=bestSc(it.ex,sets),nmw=Math.max.apply(null,sets.map(function(q){return q.w;}));
-      const ef=sets.filter(function(q){return effSet(e,q.r,it.fb);}).length;eff+=ef;
+      const ef=sets.filter(function(q){return effSet(e,q.r,fbOf(it));}).length;eff+=ef;
       const U=unitOf(it.ex);
       if(H.n>0&&nsc>H.msc+0.001){
         if(e.step&&nmw>H.mw+0.001)prs.push({n:e.n,k:'peso',a:fw(H.mw,U),b:fw(nmw,U)});
@@ -834,7 +837,7 @@ function finish(){
       }
       if(H.last)cmp.push({n:e.n,a:setTxt(it.ex,H.last.sets),b:setTxt(it.ex,sets),up:nsc>bestSc(it.ex,H.last.sets)+0.001,down:nsc<bestSc(it.ex,H.last.sets)-0.001});
     }
-    const _u=UNIT;UNIT=unitOf(it.ex);let out;try{out=progress(e,slot,S.prog[it.ex],sets,it.fb,tired);}finally{UNIT=_u;}
+    const _u=UNIT;UNIT=unitOf(it.ex);let out;try{out=progress(e,slot,S.prog[it.ex],sets,fbOf(it),tired);}finally{UNIT=_u;}
     if(!out)return;
     const prev=S.prog[it.ex],hist=((prev&&prev.hist)||[]).concat([{t:Date.now(),sc:out.sc}]).slice(-30);
     if(out.adv){
@@ -847,7 +850,7 @@ function finish(){
     }
     adj.push({n:e.n,msg:out.msg,plat:!out.adv&&plateau(hist)});
   });
-  const logIt=D.items.map(function(it){return {ex:it.ex,fb:it.fb,note:(it.note||'').trim()||undefined,sets:it.sets.filter(function(s){return s.done;}).map(function(s){return {w:parseFloat(s.w)||0,r:parseInt(s.r,10)||0};})};});
+  const logIt=D.items.map(function(it){return {ex:it.ex,fb:fbOf(it)||it.fb,note:(it.note||'').trim()||undefined,sets:it.sets.filter(function(s){return s.done;}).map(function(s){return s.rir!=null?{w:parseFloat(s.w)||0,r:parseInt(s.r,10)||0,rir:s.rir}:{w:parseFloat(s.w)||0,r:parseInt(s.r,10)||0};})};});
   S.log.push({t:Date.now(),day:D.day,name:S.plan.days[D.day].name,ready:D.ready,items:logIt,prs:prs.length,dur:(dur>=5&&dur<=300)?dur:null});
   const cy=cycl();if(cy.indexOf(D.day)<0)cy.push(D.day);
   if(cy.length>=S.plan.days.length)S.cyc=[];
@@ -1187,11 +1190,12 @@ function vSesion(){
       if(s.done){
         const rr=parseInt(s.r,10)||0,ww=parseFloat(s.w)||0,sc=e1(e.step?ww:0,rr);
         if(H.n>0&&sc>H.msc+0.001)h+='<p class="pr">¡Récord personal! Antes: '+(e.step&&ww>H.mw+0.001?fw(H.mw,U):setTxt(it.ex,H.last.sets))+'</p>';
-        else if(effSet(e,rr,it.fb))h+='<p class="pr ef">💪 Serie efectiva para crecer</p>';
+        else if(effSet(e,rr,fbOf(it)))h+='<p class="pr ef">💪 Serie efectiva para crecer</p>';
+        h+='<div class="rir"><span class="small">¿Cuántas más podías?</span><div class="rirb" role="group" aria-label="Repeticiones en reserva, serie '+(j+1)+'">'+RIRO.map(function(o){return '<button data-act="rir" data-i="'+i+'" data-j="'+j+'" data-v="'+o[0]+'" aria-pressed="'+(s.rir===o[0])+'" title="'+(o[2]||o[1]+' más')+'">'+o[1]+'</button>';}).join('')+'</div></div>';
       }
     });
     h+='<button class="btn ghost sm" style="align-self:flex-start" data-act="addset" data-i="'+i+'">+ Serie</button>';
-    h+='<span class="label">¿Cómo se sintió?</span><div class="chips">'+FB.map(function(f){return '<button class="chip" data-act="fb" data-i="'+i+'" data-v="'+f[0]+'" aria-pressed="'+(it.fb===f[0])+'">'+f[1]+'</button>';}).join('')+'</div></section>';
+    const dfb=!it.fb&&fbOf(it);h+='<span class="label">¿Cómo se sintió el ejercicio?'+(dfb?' <span class="mute" style="text-transform:none;letter-spacing:0">· según tus series: '+FB.filter(function(f){return f[0]===dfb;})[0][1]+'</span>':'')+'</span><div class="chips">'+FB.map(function(f){return '<button class="chip" data-act="fb" data-i="'+i+'" data-v="'+f[0]+'" aria-pressed="'+(it.fb===f[0])+'">'+f[1]+'</button>';}).join('')+'</div></section>';
   });
   const any=D.items.some(function(it){return it.sets.some(function(s){return s.done;});});
   h+='<button class="btn" data-act="finish"'+(any?'':' disabled')+'>Terminar sesión</button>';
@@ -1638,6 +1642,7 @@ document.addEventListener('click',function(ev){
   if(a==='leave'){UI.pl=null;UI.inSession=false;stopTimer();render();window.scrollTo(0,0);return;}
   if(a==='discard'){S.draft=null;save();render();return;}
   if(a==='cue'){const cur=UI.cue[d.ex]===true;UI.cue[d.ex]=!cur;render();return;}
+  if(a==='rir'){const st=S.draft.items[+d.i].sets[+d.j],v=+d.v;st.rir=st.rir===v?null:v;save();render();return;}
   if(a==='fb'){const it=S.draft.items[+d.i];it.fb=it.fb===d.v?'':d.v;save();render();return;}
   if(a==='addset'){const it=S.draft.items[+d.i],last=it.sets[it.sets.length-1];it.sets.push({w:last?last.w:'',r:'',done:false});save();render();return;}
   if(a==='chk'){
