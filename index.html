@@ -218,6 +218,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .rpeg{background:var(--bg);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
 .rpegr{display:flex;gap:10px;align-items:flex-start}.rpen{flex:0 0 44px;height:36px;border-radius:10px;display:grid;place-items:center;font:800 15px var(--disp);color:#14141a}
 .fbk{background:var(--lav,#ece8ff)!important}.stars{display:flex;gap:6px}.stars button{border:0;background:none;font-size:32px;line-height:1;color:var(--control);padding:0 2px;cursor:pointer}.stars button[aria-pressed="true"]{color:#f5a524}.fbk input{min-height:44px}
+.bmap{max-width:340px;margin:0 auto;width:100%}.bml{display:flex;flex-wrap:wrap;gap:6px 14px}.bmi{display:inline-flex;align-items:center;gap:6px;font-size:14px}.bmi i{width:12px;height:12px;border-radius:4px;background:#f2552c;display:inline-block}
 </style>
 </head>
 <body>
@@ -1152,10 +1153,11 @@ function demoHTML(id){
   if(red)return '<div class="demo2"><figure><svg viewBox="0 0 220 140" role="img" aria-label="'+lab+', inicio"><g>'+drawJ(J)+'</g></svg><figcaption>Inicio</figcaption></figure><figure><svg viewBox="0 0 220 140" role="img" aria-label="'+lab+', final"><g>'+drawJ(poseOf(id,1))+'</g></svg><figcaption>Final</figcaption></figure></div>'+cap;
   return '<div class="demo"><svg viewBox="0 0 220 140" data-demo="'+id+'" role="img" aria-label="'+lab+'"><g>'+drawJ(J)+'</g></svg>'+cap+'</div>';
 }
-function muscleSVG(m){
-  const on=function(k){return m.main.indexOf(k)>=0?'1':(m.sec.indexOf(k)>=0?'.4':'0');};
-  const E=function(cx,cy,rx,ry,k,dx){return '<ellipse cx="'+(cx+dx)+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="var(--acc)" opacity="'+on(k)+'"/>';};
-  const Ln=function(x1,y1,x2,y2,w,k,dx){return '<line x1="'+(x1+dx)+'" y1="'+y1+'" x2="'+(x2+dx)+'" y2="'+y2+'" stroke="var(--acc)" stroke-width="'+w+'" stroke-linecap="round" opacity="'+on(k)+'"/>';};
+function muscleSVG(m,op,col){
+  const C=col||'var(--acc)';
+  const on=op||function(k){return m.main.indexOf(k)>=0?'1':(m.sec.indexOf(k)>=0?'.4':'0');};
+  const E=function(cx,cy,rx,ry,k,dx){return '<ellipse cx="'+(cx+dx)+'" cy="'+cy+'" rx="'+rx+'" ry="'+ry+'" fill="'+C+'" opacity="'+on(k)+'"/>';};
+  const Ln=function(x1,y1,x2,y2,w,k,dx){return '<line x1="'+(x1+dx)+'" y1="'+y1+'" x2="'+(x2+dx)+'" y2="'+y2+'" stroke="'+C+'" stroke-width="'+w+'" stroke-linecap="round" opacity="'+on(k)+'"/>';};
   const base=function(dx){
     const b=function(x1,y1,x2,y2,w){return '<line x1="'+(x1+dx)+'" y1="'+y1+'" x2="'+(x2+dx)+'" y2="'+y2+'" stroke="var(--line)" stroke-width="'+w+'" stroke-linecap="round"/>';};
     return '<circle cx="'+(50+dx)+'" cy="11" r="8" fill="var(--line)"/><path d="M'+(31+dx)+' 26 Q'+(50+dx)+' 22 '+(69+dx)+' 26 L'+(65+dx)+' 50 L'+(62+dx)+' 74 L'+(38+dx)+' 74 L'+(35+dx)+' 50 Z" fill="var(--line)"/>'+
@@ -1353,6 +1355,12 @@ function vResumen(){
     R.cmp.forEach(function(c){h+='<div class="ex-row"><span>'+c.n+'</span><span class="r">'+c.a+' → '+c.b+' '+(c.up?'▲':(c.down?'▼':'＝'))+'</span></div>';});
     h+='</section>';
   }
+  {const LL2=S.log[S.log.length-1],sc={};
+   if(LL2&&LL2.items)LL2.items.forEach(function(it){const e=X[it.ex];if(!e)return;const n=(it.sets||[]).length;if(!n)return;const m=musOf(e);m.main.forEach(function(k){sc[k]=(sc[k]||0)+n;});m.sec.forEach(function(k){sc[k]=(sc[k]||0)+n*0.5;});});
+   const ks=Object.keys(sc).filter(function(k){return sc[k]>0&&MN[k];}).sort(function(a,b){return sc[b]-sc[a];});
+   if(ks.length){const mx=sc[ks[0]];
+     const op=function(k){const v=sc[k]||0;return v<=0?'0':String(Math.max(.25,Math.min(1,v/mx)).toFixed(2));};
+     h+='<section class="card"><span class="label">Lo que trabajaste hoy</span><div class="bmap">'+muscleSVG({main:ks,sec:[]},op,'#f2552c')+'</div><div class="bml">'+ks.map(function(k){const v=sc[k],o=op(k);return '<span class="bmi"><i style="opacity:'+o+'"></i>'+MN[k]+' <b>'+(Math.round(v*10)/10)+'</b></span>';}).join('')+'</div><p class="small mute">Número = series que trabajaron ese músculo (las de apoyo cuentan como media). Más intenso el color, más trabajo recibió.</p></section>';}}
   h+='<section class="card"><span class="label">Ajustes para la próxima vez</span>';
   if(!R.adj.length)h+='<p class="mute">No registraste series, así que no cambié nada.</p>';
   R.adj.forEach(function(a){h+='<div class="adj"><b>'+a.n+(a.plat?' <span class="pill warn">estancado</span>':'')+'</b><span class="mute">'+a.msg+'</span></div>';});
