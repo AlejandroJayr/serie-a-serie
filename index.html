@@ -1594,14 +1594,23 @@ function renderInner(){
   app.dataset.v=UI.tab;app.innerHTML={hoy:vHoy,plan:vPlan,progreso:vProgreso,cuerpo:vCuerpo,ajustes:vAjustes}[UI.tab]();
 }
 
-function render(){renderInner();startDemos();navGuard();wakeSync();showToast();}
+function render(){
+  try{renderInner();}catch(err){
+    try{console.error(err);}catch(e){}
+    UI.inSession=false;UI.wu=null;UI.summary=null;UI.sw=null;UI.pl=null;
+    try{renderInner();}catch(err2){const app=document.getElementById('app');if(app)app.innerHTML='<section class="card"><h2>Algo falló al abrir</h2><p class="small mute">Tus datos siguen guardados. Copia tu respaldo antes de intentar otra cosa.</p><textarea readonly style="min-height:120px">'+esc(JSON.stringify(S))+'</textarea><p class="small mute">Detalle: '+esc(String(err2&&err2.message||err2))+'</p><button class="btn" onclick="location.reload()">Reintentar</button></section>';}
+  }
+  try{startDemos();navGuard();wakeSync();showToast();}catch(e){}
+}
 function showToast(){if(!UI.toast)return;let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');document.body.appendChild(t);}t.textContent=UI.toast;UI.toast=null;t.className='on';clearTimeout(t._h);t._h=setTimeout(function(){t.className='';},2600);}
 /* Android: botón Atrás navega dentro de la app en vez de cerrarla */
 function navDepth(){return (UI.wu!=null||UI.inSession||UI.summary||UI.sw||UI.pl)?2:(UI.tab!=='hoy'?1:0);}
-let navSkip=false;
-function navGuard(){try{const g=history.state&&history.state.alf,d=navDepth();if(d>0&&!g)history.pushState({alf:1},'');else if(d===0&&g){navSkip=true;history.back();}}catch(e){}}
+let navSkip=false,navPushed=false;
+try{if(history.state&&history.state.alf)history.replaceState(null,'');}catch(e){}
+function navGuard(){try{const g=history.state&&history.state.alf,d=navDepth();if(d>0&&!g){history.pushState({alf:1},'');navPushed=true;}else if(d===0&&g){if(navPushed){navPushed=false;navSkip=true;history.back();}else history.replaceState(null,'');}}catch(e){}}
 window.addEventListener('popstate',function(){
   if(navSkip){navSkip=false;return;}
+  navPushed=false;
   if(UI.sw){UI.sw=null;}
   else if(UI.pl){UI.pl=null;}
   else if(UI.wu!=null){UI.wu=null;}
