@@ -204,10 +204,16 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .health{background:var(--but,#fff4d6);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.45}
 .colb{flex:0 0 44px;width:44px;height:44px;border-radius:50%;border:0;background:var(--chip);display:grid;place-items:center;color:var(--ink);cursor:pointer}.exmin .chv{width:22px;height:22px}
 .swo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:12px;text-align:left}.swdel{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}.chk2{display:flex;gap:10px;align-items:flex-start;font-size:14px}.chk2 input{width:20px;height:20px;flex:0 0 20px;margin-top:1px}
+#swt{position:fixed;inset:0;background:rgba(10,12,16,.72);display:none;align-items:center;justify-content:center;z-index:60;padding:16px}
+.swin{background:var(--card);border-radius:28px;padding:24px 20px;width:100%;max-width:420px;display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center}
+#swv{font:800 84px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.swbar{width:100%;height:12px;border-radius:99px;background:var(--chip);overflow:hidden}.swbar i{display:block;height:100%;width:0;background:var(--lime);transition:width .2s}
+.swbtn{align-self:flex-start;margin:-2px 0 4px}
 </style>
 </head>
 <body>
 <div id="app"></div>
+<div id="swt" role="dialog" aria-modal="true" aria-label="Cronómetro"><div class="swin"><span class="small" id="swn"></span><b id="swv">0:00</b><span class="small" id="swg"></span><div class="swbar"><i id="swb"></i></div><div class="row" style="flex-wrap:nowrap;gap:8px;width:100%"><button class="btn ghost" data-act="swx">Cancelar</button><button class="btn" data-act="swok">⏹ Guardar</button></div></div></div>
 <div id="timer" role="status"><span>Descanso</span><b id="tv">0:00</b><button data-act="skip">Saltar</button></div>
 <nav id="tabs" aria-label="Secciones"><div class="in" id="tabin"></div></nav>
 
@@ -872,6 +878,31 @@ function finish(){
 
 /* ---------- temporizador ---------- */
 let tmr=null,tEnd=0;
+let SWT=null,swInt=null;
+function swStart(i,j){
+  const it=S.draft.items[i],e=X[it.ex],tg=tgtReps(it);unlockAudio();
+  SWT={i:i,j:j,tg:tg,t0:Date.now()+3000,hit:false,n:e.n+' · serie '+(j+1)};
+  $('#swt').style.display='flex';swTick();clearInterval(swInt);swInt=setInterval(swTick,200);
+  try{if(navigator.wakeLock&&!WL)navigator.wakeLock.request('screen').then(function(l){WL=l;}).catch(function(){});}catch(e){}
+}
+function swSec(){return SWT?Math.max(0,Math.floor((Date.now()-SWT.t0)/1000)):0;}
+function swTick(){
+  if(!SWT)return;const now=Date.now(),pre=SWT.t0-now;
+  $('#swn').textContent=SWT.n;
+  if(pre>0){const c=Math.ceil(pre/1000);$('#swv').textContent=String(c);$('#swg').textContent='Prepárate…';$('#swb').style.width='0%';if(SWT.lc!==c){SWT.lc=c;if(al().snd)tone(660,0.12);}return;}
+  const sec=swSec();$('#swv').textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
+  $('#swg').textContent=sec>=SWT.tg?'¡Meta cumplida! Sigue si puedes o detén':'Meta: '+SWT.tg+' s';
+  $('#swb').style.width=Math.min(100,sec/SWT.tg*100)+'%';
+  if(SWT.lc!==0){SWT.lc=0;if(al().snd)tone(990,0.2);}
+  if(!SWT.hit&&sec>=SWT.tg){SWT.hit=true;if(al().snd)beep();try{navigator.vibrate&&navigator.vibrate([250,120,250]);}catch(e){}}
+}
+function tone(f,d){if(!AC)return;try{const o=AC.createOscillator(),g=AC.createGain(),t0=AC.currentTime;o.frequency.value=f;g.gain.setValueAtTime(0.0001,t0);g.gain.exponentialRampToValueAtTime(0.4,t0+0.02);g.gain.exponentialRampToValueAtTime(0.0001,t0+d);o.connect(g);g.connect(AC.destination);o.start(t0);o.stop(t0+d+0.02);}catch(e){}}
+function swEnd(save_){
+  clearInterval(swInt);$('#swt').style.display='none';
+  if(save_&&SWT){const sec=swSec(),it=S.draft.items[SWT.i],st=it.sets[SWT.j];
+    if(sec>0){st.r=String(sec);st.done=true;UI.act=SWT.i;startTimer(slotOf(it).rest);}}
+  SWT=null;save();render();
+}
 function startTimer(sec){
   tEnd=Date.now()+sec*1000;$('#timer').style.display='flex';tick();
   clearTimeout(window._tto);window._tto=setTimeout(function(){if(Date.now()>=tEnd-50)tick();},sec*1000+30);
@@ -1220,6 +1251,7 @@ function vSesion(){
       (e.step?'<label class="f"><input id="w-'+i+'-'+j+'" type="number" inputmode="decimal" step="any" min="0" data-f="w" data-i="'+i+'" data-j="'+j+'" value="'+(s.w===''||s.w==null?'':dw(s.w,U))+'" placeholder="'+ph+'" aria-label="Peso serie '+(j+1)+'"><span>'+U+'</span></label>':'<span class="f ghost"></span>')+
       '<label class="f"><input id="r-'+i+'-'+j+'" type="number" inputmode="numeric" min="0" data-f="r" data-i="'+i+'" data-j="'+j+'" value="'+s.r+'" placeholder="'+tgtReps(it)+'" aria-label="'+(e.u==='s'?'Segundos':'Repeticiones')+' serie '+(j+1)+'"><span>'+(e.u==='s'?'seg':'reps')+'</span></label>'+
       '<button class="chk" data-act="chk" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+s.done+'" aria-label="Serie '+(j+1)+' hecha"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" style="display:block;margin:auto"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
+      if(e.u==='s'&&!s.done)h+='<button class="btn ghost sm swbtn" data-act="swst" data-i="'+i+'" data-j="'+j+'">⏱ Iniciar cronómetro · meta '+tgtReps(it)+' s</button>';
       if(s.done){
         const rr=parseInt(s.r,10)||0,ww=parseFloat(s.w)||0,sc=e1(e.step?ww:0,rr);
         if(H.n>0&&sc>H.msc+0.001)h+='<p class="pr">¡Récord personal! Antes: '+(e.step&&ww>H.mw+0.001?fw(H.mw,U):setTxt(it.ex,H.last.sets))+'</p>';
@@ -1687,6 +1719,9 @@ document.addEventListener('click',function(ev){
   if(a==='cue'){const cur=UI.cue[d.ex]===true;UI.cue[d.ex]=!cur;render();return;}
   if(a==='col'){if(!UI.col)UI.col={};const it=S.draft.items[+d.i],ad=it.sets.length&&it.sets.every(function(x){return x.done;});const cur=UI.col[+d.i]!=null?UI.col[+d.i]:(ad&&UI.act!==+d.i);UI.col[+d.i]=!cur;render();return;}
   if(a==='nopen'){if(!UI.nopen)UI.nopen={};UI.nopen[+d.i]=true;render();const t=document.querySelector('[data-note="'+d.i+'"]');if(t)t.focus();return;}
+  if(a==='swst'){swStart(+d.i,+d.j);return;}
+  if(a==='swok'){swEnd(true);return;}
+  if(a==='swx'){swEnd(false);return;}
   if(a==='rir'){UI.act=+d.i;const st=S.draft.items[+d.i].sets[+d.j],v=+d.v;st.rir=st.rir===v?null:v;save();render();return;}
   if(a==='fb'){const it=S.draft.items[+d.i];it.fb=it.fb===d.v?'':d.v;save();render();return;}
   if(a==='addset'){const it=S.draft.items[+d.i],last=it.sets[it.sets.length-1];it.sets.push({w:last?last.w:'',r:'',done:false});save();render();return;}
