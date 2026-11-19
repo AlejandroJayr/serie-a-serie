@@ -203,6 +203,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .exmin{padding:10px 12px!important}.exminb{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}.exmin .chv{color:var(--mute)}
 .health{background:var(--but,#fff4d6);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.45}
 .colb{flex:0 0 44px;width:44px;height:44px;border-radius:50%;border:0;background:var(--chip);display:grid;place-items:center;color:var(--ink);cursor:pointer}.exmin .chv{width:22px;height:22px}
+.swo{display:flex!important;flex-direction:row!important;align-items:center!important;justify-content:flex-start!important;gap:12px;text-align:left}.swdel{display:flex;flex-direction:column;gap:8px;border-top:1px solid var(--line);padding-top:12px;margin-top:6px}.chk2{display:flex;gap:10px;align-items:flex-start;font-size:14px}.chk2 input{width:20px;height:20px;flex:0 0 20px;margin-top:1px}
 </style>
 </head>
 <body>
@@ -408,7 +409,8 @@ function layout(sp,n){
 }
 function avail(e,eq){if(eq==='gym'&&GYM&&e.mach&&!GYM[e.mach])return false;return eq==='gym'||(eq==='casa_man'&&(e.eq==='man'||e.eq==='cor'))||(eq==='casa_cero'&&e.eq==='cor');}
 function cands(p,pr){
-  const all=PAT[p].map(function(id){return X[id];}).filter(function(e){return avail(e,pr.equipo);});
+  const ban=(typeof S!=='undefined'&&S&&S.ban)||{};
+  const all0=PAT[p].map(function(id){return X[id];}).filter(function(e){return avail(e,pr.equipo);}),all1=all0.filter(function(e){return !ban[e.id];}),all=all1.length?all1:all0;
   const f=all.filter(function(e){return e.lvl<=pr.nivel&&e.maxLvl>=pr.nivel;});
   return f.length?f:all;
 }
@@ -1156,16 +1158,27 @@ function arrowBtn(act,dir,attrs,dis){
   return '<button class="btn ghost sm mv" data-act="'+act+'" data-dir="'+dir+'" '+attrs+(dis?' disabled':'')+' aria-label="'+(dir<0?'Subir':'Bajar')+' ejercicio"><svg width="18" height="18" viewBox="0 0 20 20" aria-hidden="true" style="display:block;margin:auto"><path d="'+(dir<0?'M5 12.5l5-5 5 5':'M5 7.5l5 5 5-5')+'" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>';
 }
 function swapPicker(k,di,si,curEx){
-  const day=S.plan.days[di],slot=day.slots[si],pr=S.profile;
+  const day=S.plan.days[di],slot=day.slots[si],pr=S.profile,ban=S.ban||{};
   const base=UI.sw&&UI.sw.all?PAT[slot.p].map(function(id){return X[id];}).filter(function(e){return avail(e,pr.equipo);}):cands(slot.p,pr);
   const used=day.slots.map(function(x){return x.ex;});
-  const list=base.filter(function(e){return e.id===curEx||used.indexOf(e.id)<0;});
-  let h='<div class="swp"><div class="row between"><span class="label">Elige el ejercicio que lo sustituye</span><button class="btn ghost sm" data-act="swclose">Cerrar</button></div><div style="display:flex;flex-direction:column;gap:8px">';
-  list.forEach(function(e){
-    const g=gearOf(e),m=musOf(e);
-    h+='<button class="opt" data-act="swpick" data-ex="'+e.id+'" aria-pressed="'+(e.id===curEx)+'"><b>'+e.n+'</b><span>'+g.n+' · '+m.main.map(function(x){return MN[x];}).join(', ')+'</span></button>';
+  const list=base.filter(function(e){return e.id!==curEx&&used.indexOf(e.id)<0&&!ban[e.id];});
+  const G=[['Con máquina o polea',function(t){return t==='Máquina'||t==='Polea';}],['Peso libre',function(t){return t==='Barra'||t==='Mancuerna';}],['Sin equipo o con banda',function(t){return !(t==='Máquina'||t==='Polea'||t==='Barra'||t==='Mancuerna');}]];
+  let h='<div class="swp"><div class="row between"><span class="label">¿No quieres o no puedes hacer '+esc(X[curEx].n)+'?</span><button class="btn ghost sm" data-act="swclose">Cerrar</button></div>';
+  h+='<p class="small mute">Elige uno parecido (trabaja los mismos músculos):</p>';
+  let any=false;
+  G.forEach(function(g){
+    const L=list.filter(function(e){return g[1](gearOf(e).t);});if(!L.length)return;any=true;
+    h+='<span class="label" style="margin-top:6px">'+g[0]+'</span><div style="display:flex;flex-direction:column;gap:8px">';
+    L.forEach(function(e){const gg=gearOf(e),m=musOf(e);
+      h+='<button class="opt swo" data-act="swpick" data-ex="'+e.id+'"><span class="ph sm">'+thumb(e.id)+'</span><span style="display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0"><b>'+e.n+'</b><span>'+gg.n+' · '+m.main.map(function(x){return MN[x];}).join(', ')+'</span></span></button>';});
+    h+='</div>';
   });
-  h+='</div><button class="chip" style="min-height:40px;align-self:flex-start" data-act="swall" aria-pressed="'+!!(UI.sw&&UI.sw.all)+'">Mostrar también los de otro nivel</button></div>';
+  if(!any)h+='<p class="note">No hay otro ejercicio parecido con tu equipo. Prueba “Mostrar también los de otro nivel” o quítalo de la rutina.</p>';
+  h+='<button class="chip" style="min-height:40px;align-self:flex-start" data-act="swall" aria-pressed="'+!!(UI.sw&&UI.sw.all)+'">Mostrar también los de otro nivel</button>';
+  h+='<div class="swdel"><span class="label">O quítalo</span>';
+  if(k==='draft')h+='<button class="btn ghost" data-act="swdel" data-m="hoy">Quitar solo de la sesión de hoy</button>';
+  h+='<button class="btn ghost" data-act="swdel" data-m="plan">Quitar de mi rutina</button>';
+  h+='<label class="chk2"><input type="checkbox" data-ban="'+curEx+'"'+(ban[curEx]?' checked':'')+'> No puedo hacer este ejercicio: no me lo vuelvas a proponer</label></div></div>';
   return h;
 }
 function vSesion(){
@@ -1692,6 +1705,16 @@ document.addEventListener('click',function(ev){
   if(a==='swapplan'){UI.sw=(UI.sw&&UI.sw.k==='plan'&&UI.sw.d===+d.d&&UI.sw.s===+d.s)?null:{k:'plan',d:+d.d,s:+d.s};render();return;}
   if(a==='swclose'){UI.sw=null;render();return;}
   if(a==='swall'){UI.sw.all=!UI.sw.all;render();return;}
+  if(a==='swdel'){
+    const w=UI.sw;if(!w)return;
+    if(w.k==='draft'&&d.m==='hoy'){S.draft.items.splice(w.i,1);UI.col={};UI.sw=null;save();render();return;}
+    const di=w.k==='draft'?S.draft.day:w.d,si=w.k==='draft'?S.draft.items[w.i].si:w.s,sl=S.plan.days[di].slots;
+    if(sl.length<=1){alert('La rutina necesita al menos un ejercicio.');return;}
+    if(!confirm('¿Quitar '+X[sl[si].ex].n+' de tu rutina?'))return;
+    sl.splice(si,1);
+    if(S.draft&&S.draft.day===di){S.draft.items=S.draft.items.filter(function(it){return it.si!==si;});S.draft.items.forEach(function(it){if(it.si>si)it.si--;});UI.col={};}
+    UI.sw=null;save();render();UI.toast='Quitado de tu rutina';showToast();return;
+  }
   if(a==='swpick'){
     const w=UI.sw;if(!w)return;
     const di=w.k==='draft'?S.draft.day:w.d,si=w.k==='draft'?S.draft.items[w.i].si:w.s;
@@ -1771,6 +1794,7 @@ document.addEventListener('click',function(ev){
 });
 document.addEventListener('change',function(ev){
   const t=ev.target;
+  if(t.dataset&&t.dataset.ban){if(!S.ban)S.ban={};if(t.checked)S.ban[t.dataset.ban]=true;else delete S.ban[t.dataset.ban];save();render();return;}
   if(t.dataset&&t.dataset.mph&&t.files&&t.files.length){const k=t.dataset.mph,f=t.files[0];t.value='';machPhoto(k,f);return;}
   if(t.dataset&&t.dataset.gph&&t.files&&t.files.length){const fl=Array.prototype.slice.call(t.files);t.value='';gymPhotos(fl);return;}
   if(t.dataset&&t.dataset.ph&&t.files&&t.files.length){
