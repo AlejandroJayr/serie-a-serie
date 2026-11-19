@@ -212,6 +212,11 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .swadj{display:flex;align-items:center;gap:6px}.swadj button{min-width:48px;height:44px;border-radius:12px;border:0;background:var(--chip);font:700 15px var(--body);color:var(--ink)}.swadj span{min-width:92px;font-weight:700;font-size:15px}
 .addbtn{border-style:dashed!important;background:transparent}
 .swp .chips{gap:6px}.swp .chip{background:var(--card);min-height:36px;padding:0 12px;font-size:14px}.swp .chip[aria-pressed="true"]{background:var(--ink);color:var(--bg)}
+.rirb button[style*="--c"]{background:color-mix(in srgb,var(--c) 28%,var(--chip))}.rirb button[style*="--c"][aria-pressed="true"]{background:var(--c);color:#14141a;box-shadow:inset 0 0 0 2px #14141a}
+.rpes{flex-basis:100%;border-left:4px solid var(--c);padding-left:8px;color:var(--ink)}
+.info{border:0;background:var(--chip);border-radius:50%;width:24px;height:24px;font-size:14px;line-height:24px;padding:0;margin-left:4px;color:var(--ink);cursor:pointer}
+.rpeg{background:var(--bg);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}
+.rpegr{display:flex;gap:10px;align-items:flex-start}.rpen{flex:0 0 44px;height:36px;border-radius:10px;display:grid;place-items:center;font:800 15px var(--disp);color:#14141a}
 </style>
 </head>
 <body>
@@ -818,6 +823,12 @@ const SPL={auto:['Recomendado para mis días','Lo elige la app según cuántos d
 const SPLS={auto:'Plan recomendado',full:'Cuerpo completo',ul:'Torso y pierna',ppl:'Empuje, tirón y pierna',grupo:'Por grupo muscular'};
 const FB=[['sobro','Me sobró mucho'],['bien','Bien'],['limite','Al límite'],['fallo','No pude']];
 const RIRO=[[0,'0','Al fallo'],[1,'1',''],[2,'2',''],[3,'3',''],[4,'4+','Muy fácil']];
+const RPE=[[6,4,'#b9e05a','Moderado','Te quedaban 4 o más'],[7,3,'#f2d94e','Desafiante','Te quedaban 3'],[8,2,'#f5a524','Duro','Te quedaban 2'],[9,1,'#f06d3c','Muy duro','Te quedaba 1, lenta'],[10,0,'#e5484d','Al fallo','No salía ni una más']];
+function escala(){return S&&S.esc==='rir'?'rir':'rpe';}
+function rpeGuide(){
+  const G=[[10,'#e5484d','Fallo total','Peso máximo: no podías hacer ni una repetición más con buena técnica.','0 en reserva'],[9,'#f06d3c','Muy duro','Pesado: quizá salía 1 más, pero muy lenta y con mucho esfuerzo.','1 en reserva'],[8,'#f5a524','Duro','Bastante pesado: podías hacer 2 más con buena técnica.','2 en reserva'],[7,'#f2d94e','Desafiante','Moderado-pesado: podías hacer 3 más controladas.','3 en reserva'],[6,'#b9e05a','Moderado','Controlado pero con esfuerzo: te quedaban 4 o más.','4+ en reserva'],['1–5','#8fd3c8','Calentamiento y movilidad','De reposo y estiramiento (1) a calentamiento pesado (5). No cuentan como series de trabajo.','']];
+  return '<div class="rpeg"><div class="row between"><b>Guía de esfuerzo (RPE)</b><button class="btn ghost sm" data-act="rpeinfo">Cerrar</button></div><p class="small mute">Califica cada serie al terminarla: ¿qué tan cerca estuviste de no poder más? RPE 8 = te quedaban 2 repeticiones.</p>'+G.map(function(g){return '<div class="rpegr"><span class="rpen" style="background:'+g[1]+'">'+g[0]+'</span><div><b>'+g[2]+'</b>'+(g[4]?' <span class="small mute">· '+g[4]+'</span>':'')+'<p class="small">'+g[3]+'</p></div></div>';}).join('')+'<p class="small mute">Para crecer, la mayoría de tus series deberían quedar entre RPE 7 y 9.</p></div>';
+}
 function fbOf(it){if(it.fb)return it.fb;const r=it.sets.filter(function(s){return s.done&&s.rir!=null;}).map(function(s){return s.rir;});if(!r.length)return '';const last=r[r.length-1];return last>=4?'sobro':last>=2?'bien':'limite';}
 function wk(t){const d=new Date(t);d.setHours(0,0,0,0);d.setDate(d.getDate()-((d.getDay()+6)%7));return d.getTime();}
 function dfmt(t){return new Date(t).toLocaleDateString('es-MX',{day:'numeric',month:'short'});}
@@ -1289,7 +1300,10 @@ function vSesion(){
         const rr=parseInt(s.r,10)||0,ww=parseFloat(s.w)||0,sc=e1(e.step?ww:0,rr);
         if(H.n>0&&sc>H.msc+0.001)h+='<p class="pr">¡Récord personal! Antes: '+(e.step&&ww>H.mw+0.001?fw(H.mw,U):setTxt(it.ex,H.last.sets))+'</p>';
         else if(effSet(e,rr,fbOf(it)))h+='<p class="pr ef">💪 Serie efectiva para crecer</p>';
-        h+='<div class="rir"><span class="small">¿Cuántas más podías?</span><div class="rirb" role="group" aria-label="Repeticiones en reserva, serie '+(j+1)+'">'+RIRO.map(function(o){return '<button data-act="rir" data-i="'+i+'" data-j="'+j+'" data-v="'+o[0]+'" aria-pressed="'+(s.rir===o[0])+'" title="'+(o[2]||o[1]+' más')+'">'+o[1]+'</button>';}).join('')+'</div></div>';
+        if(escala()==='rpe'){const sel=RPE.filter(function(o){return s.rir===o[1];})[0];
+          h+='<div class="rir"><span class="small">Esfuerzo (RPE) <button class="info" data-act="rpeinfo" data-i="'+i+'" data-j="'+j+'" aria-label="Qué es RPE">ⓘ</button></span><div class="rirb" role="group" aria-label="Esfuerzo RPE, serie '+(j+1)+'">'+RPE.map(function(o){return '<button data-act="rir" data-i="'+i+'" data-j="'+j+'" data-v="'+o[1]+'" aria-pressed="'+(s.rir===o[1])+'" style="--c:'+o[2]+'" title="'+o[3]+': '+o[4]+'">'+o[0]+'</button>';}).join('')+'</div>'+(sel?'<span class="small rpes" style="--c:'+sel[2]+'">RPE '+sel[0]+' · '+sel[3]+': '+sel[4].toLowerCase()+'</span>':'')+'</div>';}
+        else h+='<div class="rir"><span class="small">¿Cuántas más podías? <button class="info" data-act="rpeinfo" data-i="'+i+'" data-j="'+j+'" aria-label="Guía de esfuerzo">ⓘ</button></span><div class="rirb" role="group" aria-label="Repeticiones en reserva, serie '+(j+1)+'">'+RIRO.map(function(o){return '<button data-act="rir" data-i="'+i+'" data-j="'+j+'" data-v="'+o[0]+'" aria-pressed="'+(s.rir===o[0])+'" title="'+(o[2]||o[1]+' más')+'">'+o[1]+'</button>';}).join('')+'</div></div>';
+        if(UI.rpe&&UI.rpe.i===i&&UI.rpe.j===j)h+=rpeGuide();
       }
     });
     h+='<button class="btn ghost sm" style="align-self:flex-start" data-act="addset" data-i="'+i+'">+ Serie</button>';
@@ -1653,6 +1667,7 @@ function vAjustes(){
   h+='<section class="card"><span class="label">Tu perfil</span><p>'+GOALS[p.objetivo].n+' · '+SPLS[p.split||'auto']+' · '+NIVELES[p.nivel][0]+' · '+p.dias+' días · '+p.min+' min · '+EQUIPOS[p.equipo][0]+'</p><button class="btn ghost" data-act="redo">Cambiar mi perfil y rehacer el plan</button><p class="small mute">Conservas tu historial y tus pesos de los ejercicios que sigan en el plan.</p></section>';
   h+='<section class="card"><span class="label">Unidad de peso</span><div class="chips">'+[['kg','Kilos (kg)'],['lb','Libras (lb)']].map(function(u){return '<button class="chip" data-act="unit" data-v="'+u[0]+'" aria-pressed="'+(UNIT===u[0])+'">'+u[1]+'</button>';}).join('')+'</div><p class="small mute">Cambia solo cómo ves los pesos; tu historial se conserva. En libras, los saltos de peso son de 5 lb (o 2.5 lb en ejercicios pequeños).</p></section>';
   {const a=al(),np=('Notification' in window)?Notification.permission:'na';
+   h+='<section class="card"><span class="label">Escala de esfuerzo por serie</span><div class="chips"><button class="chip" data-act="esc" data-v="rpe" aria-pressed="'+(escala()==='rpe')+'">RPE (6 a 10)</button><button class="chip" data-act="esc" data-v="rir" aria-pressed="'+(escala()==='rir')+'">Repeticiones en reserva (0 a 4+)</button></div><p class="small mute">Son lo mismo con distinto nombre: RPE 8 = te quedaban 2. Elige la que te resulte más fácil.</p></section>';
    h+='<section class="card"><span class="label">Tu salud</span><p class="small">🩺 '+HEALTH+'</p></section>';
    h+='<section class="card"><span class="label">Alertas del descanso</span><div class="chips"><button class="chip" data-act="alsnd" aria-pressed="'+a.snd+'">🔔 Sonido '+(a.snd?'activado':'apagado')+'</button><button class="chip" data-act="alntf" aria-pressed="'+(a.ntf&&np==='granted')+'">📲 Notificación '+(a.ntf&&np==='granted'?'activada':'apagada')+'</button></div>';
    h+='<button class="btn ghost sm" data-act="altest" style="align-self:flex-start">Probar alerta</button>';
@@ -1760,6 +1775,8 @@ document.addEventListener('click',function(ev){
   if(a==='swgo'){if(SWT){SWT.st='run';SWT.t0=Date.now()+3000;swTick();}return;}
   if(a==='swadj'){if(SWT){SWT.tg=Math.max(5,Math.min(600,SWT.tg+(+d.v)));SWT.hit=swSec()>=SWT.tg;const it=S.draft.items[SWT.i];if(S.prog[it.ex])S.prog[it.ex].target=SWT.tg;else S.prog[it.ex]={w:null,target:SWT.tg,fails:0,hist:[]};save();swTick();}return;}
   if(a==='swx'){swEnd(false);return;}
+  if(a==='esc'){S.esc=d.v;save();render();return;}
+  if(a==='rpeinfo'){if(d.i==null){UI.rpe=null;}else{const i=+d.i,j=+d.j;UI.rpe=(UI.rpe&&UI.rpe.i===i&&UI.rpe.j===j)?null:{i:i,j:j};}render();return;}
   if(a==='rir'){UI.act=+d.i;const st=S.draft.items[+d.i].sets[+d.j],v=+d.v;st.rir=st.rir===v?null:v;save();render();return;}
   if(a==='fb'){const it=S.draft.items[+d.i];it.fb=it.fb===d.v?'':d.v;save();render();return;}
   if(a==='addset'){const it=S.draft.items[+d.i],last=it.sets[it.sets.length-1];it.sets.push({w:last?last.w:'',r:'',done:false});save();render();return;}
