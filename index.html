@@ -201,6 +201,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .rir{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:-2px 0 4px}.rir .small{color:var(--mute)}.rirb{display:flex;gap:4px}.rirb button{min-width:40px;height:36px;border-radius:10px;border:0;background:var(--chip);font:700 14px var(--body);color:var(--ink)}.rirb button[aria-pressed="true"]{background:var(--lime);color:var(--lime-ink)}
 .nxt{white-space:nowrap;display:inline-flex;align-self:flex-start;margin-top:4px;padding:3px 10px;border-radius:99px;font-size:13px;font-weight:600;background:var(--chip);color:var(--ink)}.nxt.up{background:var(--lime);color:var(--lime-ink)}.nxt.rp{background:var(--sky)}.nxt.dn{background:var(--peach,#fde2cf)}
 .exmin{padding:10px 12px!important}.exminb{display:flex;align-items:center;gap:12px;width:100%;border:0;background:none;font:inherit;color:inherit;padding:0;cursor:pointer}.exmin .chv{color:var(--mute)}
+.health{background:var(--but,#fff4d6);border-radius:16px;padding:12px 14px;font-size:14px;line-height:1.45}
 </style>
 </head>
 <body>
@@ -926,7 +927,7 @@ function vOnboard(){
   '<span class="label" style="margin-top:6px">Tiempo por sesión</span>'+chips('min',[[30,'30 min'],[45,'45 min'],[60,'1 h'],[75,'1 h 15'],[90,'1 h 30'],[120,'2 h']],o.min)+'</section>'+
   splitSec(o)+'<section class="card"><span class="label">5 · Dónde entrenas</span>'+opts('equipo',EQUIPOS,o.equipo)+'</section>'+
   '<section class="card"><span class="label">6 · Unidad de peso</span>'+chips('unit',[['kg','Kilos (kg)'],['lb','Libras (lb)']],o.unit||'kg')+'<p class="small mute">Puedes cambiarla cuando quieras en Ajustes.</p></section>'+
-  '<button class="btn" data-act="mkplan">Crear mi plan</button>';
+  '<p class="health">🩺 <b>Antes de empezar:</b> '+HEALTH+'</p><button class="btn" data-act="mkplan">Crear mi plan</button>';
 }
 function presc(it){
   const e=X[it.ex],s=slotOf(it),p=S.prog[it.ex],u=e.u==='s'?' s':' reps';
@@ -980,6 +981,7 @@ function vWarm(){
   h+='<button class="btn ghost" data-act="start">'+(S.draft?'Saltar y volver a la sesión':'Saltar y empezar sesión')+'</button>';
   return h;
 }
+const HEALTH='Consulta a tu médico antes de empezar un programa de ejercicio, sobre todo si tienes alguna lesión, dolor, condición médica, estás embarazada o llevas tiempo sin entrenar. ALFAYO te da rutinas generales; no sustituye la valoración de un médico ni de un entrenador. Si sientes dolor agudo, mareo, falta de aire o dolor en el pecho, detente de inmediato.';
 function vHoy(){
   const n=S.plan.days.length,nx=nextIdx(),di=S.draft?S.draft.day:((UI.pick!=null&&UI.pick<n)?UI.pick:nx),d=S.plan.days[di];
   const cyc=cycl();
@@ -1570,6 +1572,7 @@ function vAjustes(){
   h+='<section class="card"><span class="label">Tu perfil</span><p>'+GOALS[p.objetivo].n+' · '+SPLS[p.split||'auto']+' · '+NIVELES[p.nivel][0]+' · '+p.dias+' días · '+p.min+' min · '+EQUIPOS[p.equipo][0]+'</p><button class="btn ghost" data-act="redo">Cambiar mi perfil y rehacer el plan</button><p class="small mute">Conservas tu historial y tus pesos de los ejercicios que sigan en el plan.</p></section>';
   h+='<section class="card"><span class="label">Unidad de peso</span><div class="chips">'+[['kg','Kilos (kg)'],['lb','Libras (lb)']].map(function(u){return '<button class="chip" data-act="unit" data-v="'+u[0]+'" aria-pressed="'+(UNIT===u[0])+'">'+u[1]+'</button>';}).join('')+'</div><p class="small mute">Cambia solo cómo ves los pesos; tu historial se conserva. En libras, los saltos de peso son de 5 lb (o 2.5 lb en ejercicios pequeños).</p></section>';
   {const a=al(),np=('Notification' in window)?Notification.permission:'na';
+   h+='<section class="card"><span class="label">Tu salud</span><p class="small">🩺 '+HEALTH+'</p></section>';
    h+='<section class="card"><span class="label">Alertas del descanso</span><div class="chips"><button class="chip" data-act="alsnd" aria-pressed="'+a.snd+'">🔔 Sonido '+(a.snd?'activado':'apagado')+'</button><button class="chip" data-act="alntf" aria-pressed="'+(a.ntf&&np==='granted')+'">📲 Notificación '+(a.ntf&&np==='granted'?'activada':'apagada')+'</button></div>';
    h+='<button class="btn ghost sm" data-act="altest" style="align-self:flex-start">Probar alerta</button>';
    if(np==='na')h+='<p class="small mute">Este navegador no permite notificaciones. En iPhone funcionan solo con la app instalada en la pantalla de inicio (iOS 16.4 o más nuevo).</p>';
