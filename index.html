@@ -219,6 +219,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .rpegr{display:flex;gap:10px;align-items:flex-start}.rpen{flex:0 0 44px;height:36px;border-radius:10px;display:grid;place-items:center;font:800 15px var(--disp);color:#14141a}
 .fbk{background:var(--lav,#ece8ff)!important}.stars{display:flex;gap:6px}.stars button{border:0;background:none;font-size:32px;line-height:1;color:var(--control);padding:0 2px;cursor:pointer}.stars button[aria-pressed="true"]{color:#f5a524}.fbk input{min-height:44px}
 .bmap{max-width:340px;margin:0 auto;width:100%}.bml{display:flex;flex-wrap:wrap;gap:6px 14px}.bmi{display:inline-flex;align-items:center;gap:6px;font-size:14px}.bmi i{width:12px;height:12px;border-radius:4px;background:#f2552c;display:inline-block}
+.ytc{display:flex;flex-direction:column;gap:8px;width:100%}
+.ytw{position:relative;width:100%;aspect-ratio:16/9;border-radius:16px;overflow:hidden;background:#000}.ytw iframe{position:absolute;inset:0;width:100%;height:100%;border:0}
+.ytf{position:relative;width:100%;aspect-ratio:16/9;border:0;border-radius:16px;overflow:hidden;background:#111 linear-gradient(135deg,#1b1b22,#2a2a35);cursor:pointer;padding:0;display:block}
+.ytf img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.85}
+.ytp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:46px;border-radius:14px;background:#ff0033;color:#fff;font-size:22px;display:grid;place-items:center}
+.ytl{position:absolute;left:12px;bottom:10px;color:#fff;font-weight:700;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.7)}
 </style>
 </head>
 <body>
@@ -1026,7 +1032,7 @@ function vWarm(){
   let h='<header class="row" style="flex-wrap:nowrap;gap:8px"><button class="btn ghost sm mv" data-act="wux" aria-label="Volver">'+IC.back+'</button><h1 style="flex:1;text-align:center;font-size:24px">Calentamiento</h1><span style="width:40px"></span></header>';
   h+='<div class="dots" aria-label="Paso '+(i+1)+' de '+L.length+'">'+L.map(function(_,k){return '<button data-act="wugo" data-i="'+k+'" aria-label="Ir al paso '+(k+1)+'" class="'+(k===i?'on':'')+'"></button>';}).join('')+'</div>';
   h+='<section class="card wuc"><span class="label">'+(i+1)+' de '+L.length+' · '+w.r+'</span><h2>'+w.n+'</h2>';
-  h+='<a class="btn dark" style="align-self:stretch;width:100%" href="https://www.youtube.com/watch?v='+w.v+'" target="_blank" rel="noopener noreferrer">▶ Ver video en YouTube</a>';
+  h+='<div class="ytc">'+ytBox(w.v,'wu:'+L[i],w.n)+'</div>';
   h+='<div><span class="pill ok">Principal</span> <b>'+w.m+'</b></div>';
   h+='<p class="why">💡 '+w.why+'</p><ol class="steps">'+w.st.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ol></section>';
   h+='<div class="row" style="flex-wrap:nowrap">'+(i>0?'<button class="btn ghost" data-act="wugo" data-i="'+(i-1)+'">Anterior</button>':'')+(i<L.length-1?'<button class="btn" data-act="wugo" data-i="'+(i+1)+'">Siguiente</button>':'<button class="btn" data-act="start">'+(S.draft?'Volver a la sesión':'Empezar sesión')+'</button>')+'</div>';
@@ -1075,10 +1081,17 @@ function vHoy(){
 }
 function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
 const VID={sent_barra:'9D7zI27gFHM',prensa:'hl-EJUQ2yuc',sent_goblet:'5HHITKuLxUs',sent_corp:'yluv--sqkNo',sent_pausa:'PVPcu1Ck9Tw',bulgara:'IdilLr9nyuQ',bulg_corp:'IdilLr9nyuQ',zanc_man:'y8zPm7gJR_E',zanc_corp:'y8zPm7gJR_E',peso_muerto:'1-UFXJeP564',rumano_man:'9j_L1KgpK8Y',rumano_1p:'wHMRxe9qZ84',hipthrust:'CK9Qm1Bhq0U',puente_man:'H3WPyZA-BoA',puente_corp:'18LJ3J-TvJU',puente_1p:'7f4Ey9AnRyY',press_banca:'jN5TvAIO7Sc',press_maq:'lw4uUkBl_HE',press_man:'ADpFuBjvSvA',flex_rod:'NhtUptsdnbw',flex:'2p-zLSXQZck',flex_elev:'aekvyLlnCNg',press_inc_man:'oTD5g77GgSA',flex_cerr:'yzU8tE28ePE',press_mil:'OHxSwnkSxB8',press_hom_maq:'quCgndXL8i8',press_hom_man:'7J0b8aGWwqk',pike:'vuEXoLTAlyk',pike_elev:'YmvRjb7TxDg',remo_barra:'VBhFIZWMKUs',remo_polea:'nwdptbhYjTw',remo_man:'fZYGcNtMWSc',remo_inv:'ryTumE86-O4',remo_banda:'KmpDowjBY2A',dominadas:'OjVOjO_8f30',jalon:'Ln0CZzrlTEw',pullover_man:'Q8zAg5ljwPs',jalon_banda:'cX1AoSUeIwg',elev_lat:'V3LaKO8iZUE',elev_lat_banda:'48d1KFWmLxQ',face_pull:'BwFDZGcM0Hc',pajaros:'-NtDTvtncy0',pajaros_banda:'-gkOPdqV11o',curl_barra:'P6swDsMzqm0',curl_man:'rqy0oxx__sU',curl_mart:'mPvlpDWIoDA',curl_banda:'yop7qSNx6ts',ext_polea:'J1RfL2yT6d4',fran_man:'4VinTrNN_kU',fondos_banco:'EZSjDiiTi2o',ext_banda:'v3uVtjVASzs',gem_man:'1BL4681pIz4',gem_corp:'GPpfeZp35iA',plancha:'xeVZvvzHaw0',dead_bug:'SPTBzZdINlg',elev_pierna:'bz-sVK8jHgE',leg_ext:'KsebeW8gCxU',smith_sent:'4r9o_rqFZX4',leg_curl:'kU6YEyUzPcA',press_inc_maq:'pdW4JmCDT7w',pec_deck:'yoHsf1J1dVs',elev_lat_maq:'oM27m1zdiA8',pec_deck_inv:'kUgxJo-dp6k',remo_maq:'jrqez6Ip8a0',curl_polea:'0ZRs0Suz1cU',curl_pred:'HIqT3n7XgT8',ext_tric_maq:'dLi01TSjcVY',gem_maq:'-ClDK8lLPas',crunch_maq:'DLU0RKjZV2g',abduct:'2vCRMi-lgJ4'};
+const CAN_EMBED=/github\.io$|localhost|^127\./.test(location.hostname)||location.protocol==='file:';
+function ytBox(id,key,label){
+  const ext='https://www.youtube.com/watch?v='+id;
+  if(!CAN_EMBED)return '<a class="btn dark" style="width:100%" href="'+ext+'" target="_blank" rel="noopener noreferrer">▶ Ver video en YouTube</a>';
+  if(UI.yt===key)return '<div class="ytw"><iframe src="https://www.youtube-nocookie.com/embed/'+id+'?autoplay=1&playsinline=1&rel=0&modestbranding=1" title="'+esc(label)+'" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen loading="lazy" referrerpolicy="strict-origin-when-cross-origin"></iframe></div><div class="row between" style="gap:8px"><a class="lnk small" href="'+ext+'" target="_blank" rel="noopener noreferrer">¿No carga? Ábrelo en YouTube</a><button class="btn ghost sm" data-act="ytplay" data-k="">Cerrar video</button></div>';
+  return '<button class="ytf" data-act="ytplay" data-k="'+key+'" aria-label="Reproducir video de '+esc(label)+'"><img src="https://i.ytimg.com/vi/'+id+'/mqdefault.jpg" alt="" loading="lazy" onerror="this.remove()"><span class="ytp">▶</span><span class="ytl">Ver video aquí</span></button>';
+}
 function vidLinks(e){
-  const q=encodeURIComponent(e.n+' técnica correcta cómo hacerlo'),t=encodeURIComponent(e.n+' cómo se hace');
-  const yt=VID[e.id]?'https://www.youtube.com/watch?v='+VID[e.id]:'https://www.youtube.com/results?search_query='+q;
-  return '<a class="lnk" href="'+yt+'" target="_blank" rel="noopener noreferrer">Ver video en YouTube</a><a class="lnk" href="https://www.tiktok.com/search?q='+t+'" target="_blank" rel="noopener noreferrer">Ver en TikTok</a>';
+  const q=encodeURIComponent(e.n+' técnica correcta cómo hacerlo');
+  if(VID[e.id])return '<div class="ytc">'+ytBox(VID[e.id],'ex:'+e.id,e.n)+'</div>';
+  return '<a class="lnk" href="https://www.youtube.com/results?search_query='+q+'" target="_blank" rel="noopener noreferrer">Buscar video en YouTube</a>';
 }
 function rvPanel(i){
   const R=(UI.review&&UI.review.i===i)?UI.review:null,st=R?R.st:'idle';
@@ -1177,7 +1190,7 @@ function guideBox(e){
   return '<div class="cue">'+demoHTML(e.id)+
     '<div style="display:flex;flex-direction:column;gap:8px;align-items:center"><div style="width:100%;max-width:280px">'+muscleSVG(m)+'</div><div style="display:flex;flex-direction:column;gap:4px;align-self:stretch"><span class="label">Músculos</span><span style="color:var(--ink)"><b>'+m.main.map(function(x){return MN[x];}).join(', ')+'</b></span>'+(m.sec.length?'<span class="small">También ayudan: '+m.sec.map(function(x){return MN[x];}).join(', ')+'</span>':'')+'</div></div>'+
     '<div style="display:flex;flex-direction:column;gap:4px"><span class="label">Equipo</span><span style="color:var(--ink)"><span class="pill">'+g.t+'</span> <b>'+g.n+'</b></span>'+(g.look?'<span class="small">Cómo reconocerla: '+g.look+'</span>':'')+'</div>'+
-    '<p>'+e.cue+'</p><div class="row" style="gap:16px">'+vidLinks(e)+'</div></div>';
+    '<p>'+e.cue+'</p>'+vidLinks(e)+'</div>';
 }
 let raf=0;
 function demoLoop(now){
@@ -1809,6 +1822,7 @@ document.addEventListener('click',function(ev){
   if(a==='fbksend'){const F=UI.fbk||{};if(!F.mal&&!F.nose&&!F.falta&&!F.bien&&!F.stars){UI.toast='Escribe algo o califica antes de enviar';showToast();return;}
     const href='mailto:'+FEEDBACK_TO+'?subject='+encodeURIComponent('Comentarios ALFAYO'+(F.nom?' · '+F.nom:''))+'&body='+encodeURIComponent(fbkBody());
     location.href=href;UI.fbk={};try{localStorage.removeItem('alfayo.fbk');}catch(e){}UI.fbkOpen=null;setTimeout(function(){UI.toast='¡Gracias! Revisa tu app de correo y toca Enviar';render();},400);return;}
+  if(a==='ytplay'){UI.yt=d.k||null;render();return;}
   if(a==='esc'){S.esc=d.v;save();render();return;}
   if(a==='rpeinfo'){if(d.i==null){UI.rpe=null;}else{const i=+d.i,j=+d.j;UI.rpe=(UI.rpe&&UI.rpe.i===i&&UI.rpe.j===j)?null:{i:i,j:j};}render();return;}
   if(a==='rir'){UI.act=+d.i;const st=S.draft.items[+d.i].sets[+d.j],v=+d.v;st.rir=st.rir===v?null:v;save();render();return;}
