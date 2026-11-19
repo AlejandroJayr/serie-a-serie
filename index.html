@@ -195,6 +195,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .rst{display:flex;align-items:center;gap:8px;background:var(--bg);border-radius:14px;padding:6px 6px 6px 14px}.rst span{flex:1}
 .cue .demo,.cue .demo2{max-width:300px;margin:0 auto;width:100%}.cue>svg,.cue svg[aria-label^="Músculos"]{max-width:220px;margin:0 auto;display:block}.cue{font-size:14px;gap:8px}
 .acts{gap:6px!important}.acts .btn.sm{padding:0 10px;font-size:14px;white-space:nowrap;flex:1 1 auto;min-width:0}.acts .btn.mv{flex:0 0 40px;width:40px;padding:0}
+.mph{display:flex;align-items:center;gap:10px;background:var(--bg);border-radius:14px;padding:8px 8px 8px 10px}.mph img{width:48px;height:48px;border-radius:10px;object-fit:cover;flex:0 0 48px}
+.gopt{display:flex;gap:8px;align-items:center}.gopt .opt{flex:1;display:flex;gap:10px;align-items:center}.gopt .opt img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:0 0 44px}.gopt .mv{flex:0 0 44px;height:44px;display:grid;place-items:center}
+#toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:all .2s;z-index:50;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 </style>
 </head>
 <body>
@@ -1159,6 +1162,8 @@ function vSesion(){
     h+='<section class="card'+(allDone?' exdone':'')+'"><div class="row" style="flex-wrap:nowrap;gap:12px;min-width:0"><div class="ph sm">'+thumb(it.ex)+'</div><div style="min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start"><h3>'+e.n+'</h3>'+(allDone?'<span class="pill ok">✓ Listo</span>':'')+'</div></div><div><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="swap" data-i="'+i+'">Cambiar</button>'+arrowBtn('mvsess',-1,'data-i="'+i+'"',i===0)+arrowBtn('mvsess',1,'data-i="'+i+'"',i===D.items.length-1)+'</div></div>';
     h+='<label class="note2"><span class="label">Notas</span><textarea data-note="'+i+'" rows="1" placeholder="Agregar notas… (asiento, agarre, sensaciones)">'+esc(it.note||'')+'</textarea></label>';
     {const rs=slotOf(it).rest||90;h+='<div class="rst"><span>⏱ Descanso: <b>'+Math.floor(rs/60)+':'+String(rs%60).padStart(2,'0')+'</b></span><button class="btn ghost sm mv" data-act="rest" data-i="'+i+'" data-v="-15" aria-label="Menos descanso">−</button><button class="btn ghost sm mv" data-act="rest" data-i="'+i+'" data-v="15" aria-label="Más descanso">+</button></div>';}
+    if(e.mach&&MACH[e.mach]){const mp=S.mph&&S.mph[e.mach],inG=S.gym&&S.gym[e.mach];
+      h+='<div class="mph">'+(mp?'<img src="'+mp+'" alt="Tu '+esc(MACH[e.mach].n)+'">':'')+'<div style="flex:1 1 0;min-width:0"><span class="small mute">'+(mp?'Tu máquina':'Máquina')+'</span><br><b class="small">'+MACH[e.mach].n+'</b><p class="small mute">'+(inG?'✓ En tu gimnasio':'Aún no está en tu gimnasio')+'</p></div><label class="btn ghost sm" style="cursor:pointer;white-space:nowrap;flex:0 0 auto;padding:0 12px" aria-label="'+(mp?'Cambiar foto de la máquina':'Tomar foto de la máquina')+'">📷 '+(mp?'Cambiar':'Foto')+'<input type="file" accept="image/*" capture="environment" hidden data-mph="'+e.mach+'"></label></div>';}
     const pn=H.n&&H.last&&H.last.note;if(pn)h+='<p class="small mute">Nota anterior: '+esc(pn)+'</p>';
     if(UI.sw&&UI.sw.k==='draft'&&UI.sw.i===i)h+=swapPicker('draft',D.day,it.si,it.ex);
     const sl=slotOf(it),zona=sl.hi<=6?'Fuerza':(sl.hi<=15?'Hipertrofia':'Resistencia');
@@ -1237,7 +1242,8 @@ function gymCard(){
     h+='<span class="label">Equipo disponible</span><div class="row" style="flex-direction:column;align-items:stretch">';
     Object.keys(MACH).forEach(function(k){
       const on=!!(G&&G[k]),ex=Object.keys(X).filter(function(id){return X[id].mach===k&&X[id].eq==='gym'||(X[id].mach===k&&k==='mancuernas');}).slice(0,3).map(function(id){return X[id].n;});
-      h+='<button class="opt" data-act="gtog" data-k="'+k+'" aria-pressed="'+on+'"><b>'+MACH[k].n+'</b><span>'+MACH[k].look+'</span></button>';
+      const mp=S.mph&&S.mph[k];
+      h+='<div class="gopt"><button class="opt" data-act="gtog" data-k="'+k+'" aria-pressed="'+on+'">'+(mp?'<img src="'+mp+'" alt="">':'')+'<span style="display:flex;flex-direction:column;gap:2px;text-align:left"><b>'+MACH[k].n+'</b><span>'+MACH[k].look+'</span></span></button><label class="btn ghost sm mv" style="cursor:pointer" aria-label="Tomar foto de '+esc(MACH[k].n)+'">📷<input type="file" accept="image/*" capture="environment" hidden data-mph="'+k+'"></label></div>';
     });
     h+='</div><div class="row"><button class="btn ghost sm" data-act="gall">Marcar todo</button><button class="btn ghost sm" data-act="gnone">Sin filtrar</button></div>';
     h+='<button class="btn" data-act="gregen">Rehacer mi plan con mi gimnasio</button><p class="small mute">Conservas tu historial y tus pesos. Se reinicia el orden de los días.</p>';
@@ -1355,6 +1361,15 @@ const MET={w:['Peso',0],waist:['Cintura',-1],fat:['Grasa corporal',-1],visc:['Gr
 const MU={waist:' cm',fat:' %',visc:'',chest:' cm',arm:' cm',shoulder:' cm'};
 function mval(k,v,en){return k==='w'?fw(v):(k==='musc'?n1(v)+' '+(en&&en.mu||'%'):n1(v)+MU[k]);}
 function bmiOf(w,h){return (w&&h)?w/Math.pow(h/100,2):null;}
+function machPhoto(k,f){
+  img(f,360).then(function(du){
+    if(!S.mph)S.mph={};S.mph[k]=du;
+    if(!S.gym){S.gym={};S.plan.days.forEach(function(d){d.slots.forEach(function(sl){const m=X[sl.ex]&&X[sl.ex].mach;if(m)S.gym[m]=true;});});if(S.draft)S.draft.items.forEach(function(it){const m=X[it.ex]&&X[it.ex].mach;if(m)S.gym[m]=true;});}
+    S.gym[k]=true;GYM=S.gym;
+    try{save();}catch(e){delete S.mph[k];alert('No hay espacio para guardar más fotos en este dispositivo.');}
+    UI.toast='Guardé '+MACH[k].n+' en tu gimnasio';render();
+  }).catch(function(){});
+}
 function img(file,max){
   return new Promise(function(res,rej){
     const url=URL.createObjectURL(file),im=new Image();
@@ -1558,7 +1573,8 @@ function renderInner(){
   app.dataset.v=UI.tab;app.innerHTML={hoy:vHoy,plan:vPlan,progreso:vProgreso,cuerpo:vCuerpo,ajustes:vAjustes}[UI.tab]();
 }
 
-function render(){renderInner();startDemos();navGuard();wakeSync();}
+function render(){renderInner();startDemos();navGuard();wakeSync();showToast();}
+function showToast(){if(!UI.toast)return;let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');document.body.appendChild(t);}t.textContent=UI.toast;UI.toast=null;t.className='on';clearTimeout(t._h);t._h=setTimeout(function(){t.className='';},2600);}
 /* Android: botón Atrás navega dentro de la app en vez de cerrarla */
 function navDepth(){return (UI.wu!=null||UI.inSession||UI.summary||UI.sw||UI.pl)?2:(UI.tab!=='hoy'?1:0);}
 let navSkip=false;
@@ -1718,6 +1734,7 @@ document.addEventListener('click',function(ev){
 });
 document.addEventListener('change',function(ev){
   const t=ev.target;
+  if(t.dataset&&t.dataset.mph&&t.files&&t.files.length){const k=t.dataset.mph,f=t.files[0];t.value='';machPhoto(k,f);return;}
   if(t.dataset&&t.dataset.gph&&t.files&&t.files.length){const fl=Array.prototype.slice.call(t.files);t.value='';gymPhotos(fl);return;}
   if(t.dataset&&t.dataset.ph&&t.files&&t.files.length){
     const k=t.dataset.ph,fl=t.files[0];t.value='';
