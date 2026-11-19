@@ -209,11 +209,12 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 #swv{font:800 84px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
 .swbar{width:100%;height:12px;border-radius:99px;background:var(--chip);overflow:hidden}.swbar i{display:block;height:100%;width:0;background:var(--lime);transition:width .2s}
 .swbtn{align-self:flex-start;margin:-2px 0 4px}
+.swadj{display:flex;align-items:center;gap:6px}.swadj button{min-width:48px;height:44px;border-radius:12px;border:0;background:var(--chip);font:700 15px var(--body);color:var(--ink)}.swadj span{min-width:92px;font-weight:700;font-size:15px}
 </style>
 </head>
 <body>
 <div id="app"></div>
-<div id="swt" role="dialog" aria-modal="true" aria-label="Cronómetro"><div class="swin"><span class="small" id="swn"></span><b id="swv">0:00</b><span class="small" id="swg"></span><div class="swbar"><i id="swb"></i></div><div class="row" style="flex-wrap:nowrap;gap:8px;width:100%"><button class="btn ghost" data-act="swx">Cancelar</button><button class="btn" data-act="swok">⏹ Guardar</button></div></div></div>
+<div id="swt" role="dialog" aria-modal="true" aria-label="Cronómetro"><div class="swin"><span class="small" id="swn"></span><b id="swv">0:00</b><span class="small" id="swg"></span><div class="swadj" aria-label="Ajustar meta"><button data-act="swadj" data-v="-10">−10</button><button data-act="swadj" data-v="-5">−5</button><span id="swm"></span><button data-act="swadj" data-v="5">+5</button><button data-act="swadj" data-v="10">+10</button></div><div class="swbar"><i id="swb"></i></div><div class="row" style="flex-wrap:nowrap;gap:8px;width:100%"><button class="btn ghost" data-act="swx">Cancelar</button><button class="btn" data-act="swgo" id="swgo">▶ Empezar</button><button class="btn" data-act="swok" id="swok">⏹ Guardar</button></div></div></div>
 <div id="timer" role="status"><span>Descanso</span><b id="tv">0:00</b><button data-act="skip">Saltar</button></div>
 <nav id="tabs" aria-label="Secciones"><div class="in" id="tabin"></div></nav>
 
@@ -881,14 +882,16 @@ let tmr=null,tEnd=0;
 let SWT=null,swInt=null;
 function swStart(i,j){
   const it=S.draft.items[i],e=X[it.ex],tg=tgtReps(it);unlockAudio();
-  SWT={i:i,j:j,tg:tg,t0:Date.now()+3000,hit:false,n:e.n+' · serie '+(j+1)};
+  SWT={i:i,j:j,tg:tg,t0:0,st:'set',hit:false,n:e.n+' · serie '+(j+1)};
   $('#swt').style.display='flex';swTick();clearInterval(swInt);swInt=setInterval(swTick,200);
   try{if(navigator.wakeLock&&!WL)navigator.wakeLock.request('screen').then(function(l){WL=l;}).catch(function(){});}catch(e){}
 }
-function swSec(){return SWT?Math.max(0,Math.floor((Date.now()-SWT.t0)/1000)):0;}
+function swSec(){return SWT&&SWT.st!=='set'?Math.max(0,Math.floor((Date.now()-SWT.t0)/1000)):0;}
 function swTick(){
   if(!SWT)return;const now=Date.now(),pre=SWT.t0-now;
-  $('#swn').textContent=SWT.n;
+  $('#swn').textContent=SWT.n;$('#swm').textContent='Meta '+Math.floor(SWT.tg/60)+':'+String(SWT.tg%60).padStart(2,'0');
+  $('#swgo').style.display=SWT.st==='set'?'':'none';$('#swok').style.display=SWT.st==='set'?'none':'';
+  if(SWT.st==='set'){$('#swv').textContent=Math.floor(SWT.tg/60)+':'+String(SWT.tg%60).padStart(2,'0');$('#swg').textContent='Ajusta tu meta y empieza';$('#swb').style.width='0%';return;}
   if(pre>0){const c=Math.ceil(pre/1000);$('#swv').textContent=String(c);$('#swg').textContent='Prepárate…';$('#swb').style.width='0%';if(SWT.lc!==c){SWT.lc=c;if(al().snd)tone(660,0.12);}return;}
   const sec=swSec();$('#swv').textContent=Math.floor(sec/60)+':'+String(sec%60).padStart(2,'0');
   $('#swg').textContent=sec>=SWT.tg?'¡Meta cumplida! Sigue si puedes o detén':'Meta: '+SWT.tg+' s';
@@ -1721,6 +1724,8 @@ document.addEventListener('click',function(ev){
   if(a==='nopen'){if(!UI.nopen)UI.nopen={};UI.nopen[+d.i]=true;render();const t=document.querySelector('[data-note="'+d.i+'"]');if(t)t.focus();return;}
   if(a==='swst'){swStart(+d.i,+d.j);return;}
   if(a==='swok'){swEnd(true);return;}
+  if(a==='swgo'){if(SWT){SWT.st='run';SWT.t0=Date.now()+3000;swTick();}return;}
+  if(a==='swadj'){if(SWT){SWT.tg=Math.max(5,Math.min(600,SWT.tg+(+d.v)));SWT.hit=swSec()>=SWT.tg;const it=S.draft.items[SWT.i];if(S.prog[it.ex])S.prog[it.ex].target=SWT.tg;else S.prog[it.ex]={w:null,target:SWT.tg,fails:0,hist:[]};save();swTick();}return;}
   if(a==='swx'){swEnd(false);return;}
   if(a==='rir'){UI.act=+d.i;const st=S.draft.items[+d.i].sets[+d.j],v=+d.v;st.rir=st.rir===v?null:v;save();render();return;}
   if(a==='fb'){const it=S.draft.items[+d.i];it.fb=it.fb===d.v?'':d.v;save();render();return;}
