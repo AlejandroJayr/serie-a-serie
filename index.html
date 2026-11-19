@@ -199,6 +199,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .gopt{display:flex;gap:8px;align-items:center}.gopt .opt{flex:1;display:flex;gap:10px;align-items:center}.gopt .opt img{width:44px;height:44px;border-radius:10px;object-fit:cover;flex:0 0 44px}.gopt .mv{flex:0 0 44px;height:44px;display:grid;place-items:center}
 #toast{position:fixed;left:50%;bottom:96px;transform:translate(-50%,20px);background:var(--ink);color:var(--bg);padding:12px 18px;border-radius:14px;font-weight:600;font-size:14px;opacity:0;pointer-events:none;transition:all .2s;z-index:50;max-width:90vw;text-align:center}#toast.on{opacity:1;transform:translate(-50%,0)}
 .rir{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:-2px 0 4px}.rir .small{color:var(--mute)}.rirb{display:flex;gap:4px}.rirb button{min-width:40px;height:36px;border-radius:10px;border:0;background:var(--chip);font:700 14px var(--body);color:var(--ink)}.rirb button[aria-pressed="true"]{background:var(--lime);color:var(--lime-ink)}
+.nxt{white-space:nowrap;display:inline-flex;align-self:flex-start;margin-top:4px;padding:3px 10px;border-radius:99px;font-size:13px;font-weight:600;background:var(--chip);color:var(--ink)}.nxt.up{background:var(--lime);color:var(--lime-ink)}.nxt.rp{background:var(--sky)}.nxt.dn{background:var(--peach,#fde2cf)}
 </style>
 </head>
 <body>
@@ -463,12 +464,14 @@ function progress(e,slot,prev,sets,fb,tired){
   const atW=step?done.filter(function(s){return s.w>=w;}):done;
   const minR=Math.min.apply(null,atW.map(function(s){return s.r;}));
   const sc=Math.max.apply(null,done.map(function(s){return e1(step?s.w:0,s.r);}));
-  const out={w:step?w:null,target:lo,fails:prev?(prev.fails||0):0,msg:'',adv:null,hi:null,sc:sc};
+  const out={w:step?w:null,target:lo,fails:prev?(prev.fails||0):0,msg:'',adv:null,hi:null,sc:sc,k:'reps'};
+  const goal=(typeof S!=='undefined'&&S&&S.profile)?S.profile.objetivo:'';
+  const rirs=done.filter(function(s){return s.rir!=null;}).map(function(s){return s.rir;}),minRir=rirs.length?Math.min.apply(null,rirs):null;
   if(step&&(!prev||prev.w==null)){
     const bestE=Math.max.apply(null,done.map(function(s){return s.w*(1+(s.r+(s.rir!=null?s.rir:RIR[fb||'bien']))/30);}));
     const t=lo+Math.ceil((hi-lo)/3);
     out.w=r5(bestE/(1+(t+2)/30),step);out.target=t;out.fails=0;
-    out.msg='Calibrado: empieza en '+fw(out.w)+' y apunta a '+t+' reps.';
+    out.msg='Calibrado: empieza en '+fw(out.w)+' y apunta a '+t+' reps.';out.k='cal';
     return out;
   }
   const need=Math.max(2,slot.sets-(tired?1:0));
@@ -476,30 +479,33 @@ function progress(e,slot,prev,sets,fb,tired){
   if(minR>=hi&&full){
     out.fails=0;
     if(fb==='limite'||fb==='fallo'){
-      out.target=hi;
+      out.target=hi;out.k='rep';
       out.msg='Casi listo para subir. Repite '+(step?fw(w)+' ':'')+'y busca '+hi+uni+' con un poco más de margen.';
     }else if(step){
-      out.w=w+step*(fb==='sobro'?2:1);out.target=lo;
+      out.w=w+step*(fb==='sobro'?2:1);out.target=lo;out.k='peso';
       out.msg='Sube a '+fw(out.w)+' y empieza en '+lo+' reps.';
     }else if(e.harder){
       out.adv=e.harder;out.target=X[e.harder].rng?X[e.harder].rng[0]:lo;
-      out.msg='Subes de nivel: pasa a '+X[e.harder].n+'.';
+      out.msg='Subes de nivel: pasa a '+X[e.harder].n+'.';out.k='nivel';
     }else{
       out.hi=hi+(e.u==='s'?10:2);out.target=hi;
       out.msg='Nuevo objetivo: hasta '+out.hi+uni+'.';
     }
+  }else if(goal==='fuerza'&&step&&full&&minR>=Math.max(lo,prev&&prev.target||lo)&&fb!=='limite'&&fb!=='fallo'&&(minRir==null||minRir>=1)){
+    out.fails=0;out.w=w+step*((fb==='sobro'||(minRir!=null&&minRir>=3))?2:1);out.target=lo;out.k='peso';
+    out.msg='Fuerza: completaste las '+minR+' reps con margen. Sube a '+fw(out.w)+' y haz '+lo+' reps.';
   }else if(minR>=lo){
     out.fails=0;
-    out.target=Math.min(hi,minR+(fb==='sobro'?2*inc:inc));
+    out.target=Math.min(hi,minR+(fb==='sobro'||(minRir!=null&&minRir>=3)?2*inc:inc));
     out.msg='Mismo '+(step?'peso ('+fw(w)+')':'ejercicio')+', apunta a '+out.target+uni+'.';
   }else{
     const f=tired?out.fails:out.fails+1;
     if(step&&!tired&&(fb==='fallo'||f>=2)){
       let nw=r5(w*0.9,step);if(nw>=w)nw=Math.max(step,w-step);
-      out.w=nw;out.target=lo;out.fails=0;
+      out.w=nw;out.target=lo;out.fails=0;out.k='baja';
       out.msg='Baja a '+fw(nw)+' para recuperar técnica y repeticiones.';
     }else{
-      out.target=lo;out.fails=f;
+      out.target=lo;out.fails=f;out.k='rep';
       out.msg='Repite '+(step?fw(w)+' ':'')+'y busca llegar a '+lo+uni+'.';
     }
   }
@@ -846,7 +852,7 @@ function finish(){
       S.prog[it.ex]={w:null,target:out.target,fails:0,hist:hist};
     }else{
       if(out.hi)S.plan.days.forEach(function(d){d.slots.forEach(function(s){if(s.ex===it.ex)s.hi=out.hi;});});
-      S.prog[it.ex]={w:out.w,target:out.target,fails:out.fails,hist:hist,plat:plateau(hist)};
+      S.prog[it.ex]={w:out.w,target:out.target,fails:out.fails,hist:hist,plat:plateau(hist),k:out.k,msg:out.msg};
     }
     adj.push({n:e.n,msg:out.msg,plat:!out.adv&&plateau(hist)});
   });
@@ -927,6 +933,12 @@ function presc(it){
   const t=p?p.target:s.lo;
   return '<span class="big">'+(e.step?fw(p.w,unitOf(it.ex))+' × ':'')+t+(e.u==='s'?' s':'')+'</span><span class="small mute">'+it.sets.length+' series · rango '+s.lo+'–'+s.hi+u+'</span>';
 }
+function nextTag(ex){
+  const p=S.prog&&S.prog[ex],e=X[ex];if(!p||!p.k)return '';
+  const U=unitOf(ex),uni=e.u==='s'?' s':' reps',wt=e.step&&p.w!=null?fw(p.w,U)+' × ':'';
+  const M={peso:['up','⬆ Más peso'],reps:['rp','➕ Más reps'],rep:['eq','= Repite'],baja:['dn','⬇ Baja peso'],nivel:['up','⭐ Sube de nivel'],cal:['eq','🎯 Empieza']}[p.k]||['eq','Próxima'];
+  return '<span class="nxt '+M[0]+'" title="'+esc(p.msg||'')+'">'+M[1]+(p.k==='nivel'?'':' · '+wt+p.target+uni)+'</span>';
+}
 function lineFor(s){
   const e=X[s.ex],p=S.prog[s.ex],u=e.u==='s'?' s':'';
   const a=s.sets+' × '+s.lo+'–'+s.hi+u;
@@ -1002,7 +1014,7 @@ function vHoy(){
   if(last)h+='<p class="small mute">Última: '+esc(last.name)+', '+dfmt(last.t)+(last.dur?' · '+fm(last.dur):'')+'.</p>';
   else h+='<p class="small mute">Tu primera sesión sirve para calibrar los pesos de cada ejercicio.</p>';
   h+='</section>';
-  h+='<section class="plain"><h2 style="margin:4px 4px 10px">Tu rutina</h2>'+d.slots.map(function(sl){const e=X[sl.ex];return '<div class="lw"><button class="li" data-act="hoyli" data-ex="'+sl.ex+'" aria-expanded="'+(UI.hoyOpen===sl.ex)+'"><div class="ph">'+thumb(sl.ex)+'</div><div><b>'+e.n+'</b><p class="small mute">'+lineFor(sl)+'</p></div>'+IC.chev+'</button>'+(UI.hoyOpen===sl.ex?guideBox(e):'')+'</div>';}).join('')+'</section>';
+  h+='<section class="plain"><h2 style="margin:4px 4px 10px">Tu rutina</h2>'+d.slots.map(function(sl){const e=X[sl.ex];return '<div class="lw"><button class="li" data-act="hoyli" data-ex="'+sl.ex+'" aria-expanded="'+(UI.hoyOpen===sl.ex)+'"><div class="ph">'+thumb(sl.ex)+'</div><div><b>'+e.n+'</b><p class="small mute">'+lineFor(sl)+'</p>'+nextTag(sl.ex)+'</div>'+IC.chev+'</button>'+(UI.hoyOpen===sl.ex?guideBox(e):'')+'</div>';}).join('')+'</section>';
   if(plats.length)h+='<section class="card"><span class="label">Atención</span>'+plats.map(function(k){return '<p class="note"><b>'+X[k].n+'</b> lleva varias sesiones sin mejorar. Prueba cambiarlo por otra variante en la pestaña Plan.</p>';}).join('')+'</section>';
   return h;
 }
@@ -1162,7 +1174,7 @@ function vSesion(){
     const e=X[it.ex],p=S.prog[it.ex],open=UI.cue[it.ex]===true;
     const U=unitOf(it.ex),H=histEx(it.ex);
     const allDone=it.sets.length&&it.sets.every(function(x){return x.done;});
-    h+='<section class="card'+(allDone?' exdone':'')+'"><div class="row" style="flex-wrap:nowrap;gap:12px;min-width:0"><div class="ph sm">'+thumb(it.ex)+'</div><div style="min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start"><h3>'+e.n+'</h3>'+(allDone?'<span class="pill ok">✓ Listo</span>':'')+'</div></div><div><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="swap" data-i="'+i+'">Cambiar</button>'+arrowBtn('mvsess',-1,'data-i="'+i+'"',i===0)+arrowBtn('mvsess',1,'data-i="'+i+'"',i===D.items.length-1)+'</div></div>';
+    h+='<section class="card'+(allDone?' exdone':'')+'"><div class="row" style="flex-wrap:nowrap;gap:12px;min-width:0"><div class="ph sm">'+thumb(it.ex)+'</div><div style="min-width:0;display:flex;flex-direction:column;gap:4px;align-items:flex-start"><h3>'+e.n+'</h3>'+(allDone?'<span class="pill ok">✓ Listo</span>':nextTag(it.ex))+'</div></div><div><div class="row" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="swap" data-i="'+i+'">Cambiar</button>'+arrowBtn('mvsess',-1,'data-i="'+i+'"',i===0)+arrowBtn('mvsess',1,'data-i="'+i+'"',i===D.items.length-1)+'</div></div>';
     h+='<label class="note2"><span class="label">Notas</span><textarea data-note="'+i+'" rows="1" placeholder="Agregar notas… (asiento, agarre, sensaciones)">'+esc(it.note||'')+'</textarea></label>';
     {const rs=slotOf(it).rest||90;h+='<div class="rst"><span>⏱ Descanso: <b>'+Math.floor(rs/60)+':'+String(rs%60).padStart(2,'0')+'</b></span><button class="btn ghost sm mv" data-act="rest" data-i="'+i+'" data-v="-15" aria-label="Menos descanso">−</button><button class="btn ghost sm mv" data-act="rest" data-i="'+i+'" data-v="15" aria-label="Más descanso">+</button></div>';}
     if(e.mach&&MACH[e.mach]){const mp=S.mph&&S.mph[e.mach],inG=S.gym&&S.gym[e.mach];
@@ -1291,10 +1303,10 @@ function vPlan(){
   let h='<header><h1>Tu plan</h1><p class="mute" style="margin-top:6px">'+GOALS[p.objetivo].n+' · '+SPLS[p.split||'auto']+' · '+p.dias+' días · '+p.min+' min · '+EQUIPOS[p.equipo][0]+'</p></header>';
   h+='<div class="dsel" role="tablist" aria-label="Día de la rutina">'+S.plan.days.map(function(x,i){return '<button role="tab" data-act="pday" data-i="'+i+'" aria-selected="'+(i===di)+'"><b>Día '+L[i]+'</b></button>';}).join('')+'</div>';
   if(p.equipo==='gym')h+=gymCard();
-  h+='<section class="card planhd"><h2>'+esc(d.name)+'</h2><p class="mute">'+d.slots.length+' ejercicios · '+p.min+' min</p></section><section class="plain">';
+  h+='<section class="card planhd"><h2>'+esc(d.name)+'</h2><p class="mute">'+d.slots.length+' ejercicios · '+p.min+' min</p><p class="small" style="margin-top:4px">'+(p.objetivo==='fuerza'?'<b>Cómo progresas (fuerza):</b> primero sube el peso. Si completas las reps con al menos 1 de margen, la próxima vez pones más peso y vuelves a las reps bajas.':'<b>Cómo progresas ('+(p.objetivo==='musculo'?'músculo':p.objetivo==='grasa'?'definición':'salud')+'):</b> primero sube las repeticiones hasta el tope del rango en todas las series; entonces subes el peso y vuelves al inicio del rango.')+'</p></section><section class="plain">';
   d.slots.forEach(function(s,si){
     const e=X[s.ex];
-    h+='<div class="slot card2"><div class="ex-row" style="flex-direction:column;align-items:stretch"><div class="pr2"><div class="ph lg">'+thumb(s.ex)+'</div><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:700;font-size:17px">'+e.n+'</span><span class="small mute">'+lineFor(s)+'</span>'+gearLine(e)+'</div></div><div class="row acts" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="cue" data-ex="'+s.ex+'" aria-pressed="'+(UI.cue[s.ex]===true)+'">Técnica</button><button class="btn ghost sm" data-act="swapplan" data-d="'+di+'" data-s="'+si+'" aria-label="Cambiar ejercicio">'+IC.swap+' Cambiar</button>'+arrowBtn('mvplan',-1,'data-d="'+di+'" data-s="'+si+'"',si===0)+arrowBtn('mvplan',1,'data-d="'+di+'" data-s="'+si+'"',si===d.slots.length-1)+'</div></div>'+(UI.sw&&UI.sw.k==='plan'&&UI.sw.d===di&&UI.sw.s===si?swapPicker('plan',di,si,s.ex):'')+(UI.cue[s.ex]===true?guideBox(e):'')+'</div>';
+    h+='<div class="slot card2"><div class="ex-row" style="flex-direction:column;align-items:stretch"><div class="pr2"><div class="ph lg">'+thumb(s.ex)+'</div><div style="display:flex;flex-direction:column;gap:2px;min-width:0"><span style="font-weight:700;font-size:17px">'+e.n+'</span><span class="small mute">'+lineFor(s)+'</span>'+nextTag(s.ex)+gearLine(e)+'</div></div><div class="row acts" style="flex-wrap:nowrap;gap:6px"><button class="btn ghost sm" data-act="cue" data-ex="'+s.ex+'" aria-pressed="'+(UI.cue[s.ex]===true)+'">Técnica</button><button class="btn ghost sm" data-act="swapplan" data-d="'+di+'" data-s="'+si+'" aria-label="Cambiar ejercicio">'+IC.swap+' Cambiar</button>'+arrowBtn('mvplan',-1,'data-d="'+di+'" data-s="'+si+'"',si===0)+arrowBtn('mvplan',1,'data-d="'+di+'" data-s="'+si+'"',si===d.slots.length-1)+'</div></div>'+(UI.sw&&UI.sw.k==='plan'&&UI.sw.d===di&&UI.sw.s===si?swapPicker('plan',di,si,s.ex):'')+(UI.cue[s.ex]===true?guideBox(e):'')+'</div>';
   });
   return h+'</section>';
 }
