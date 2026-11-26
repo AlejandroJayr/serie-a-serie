@@ -323,7 +323,7 @@ ex('smith_sent','Sentadilla en máquina Smith','sentadilla','gym',1,2.5,'Pies un
 ex('leg_curl','Curl femoral en máquina','bisagra','gym',1,2.5,'Ajusta el rodillo justo sobre los talones. Flexiona las rodillas sin levantar la cadera y baja lento.',{rng:[10,15],na:1,mach:'curl_fem'});
 ex('press_inc_maq','Press inclinado en máquina','empuje_inc','gym',1,5,'Ajusta el asiento para que las manos queden a la altura de la parte alta del pecho. Empuja sin despegar la espalda.',{mach:'press_inc'});
 ex('pec_deck','Aperturas en máquina (pec deck)','empuje_inc','gym',1,2.5,'Codos a la altura del pecho. Junta los brazos al frente apretando el pecho y regresa controlado.',{rng:[10,15],na:1,mach:'pec_deck'});
-ex('elev_lat_maq','Elevaciones laterales en máquina','hombro_lat','gym',1,2.5,'Los codos empujan las almohadillas hacia los lados hasta la altura de los hombros, sin encogerlos.',{rng:[10,15],na:1,mach:'elev_lat_m'});
+ex('elev_lat_maq','Elevaciones laterales en máquina','hombro_lat','gym',1,2.5,'Sube o baja el asiento hasta que tus hombros queden a la altura del eje de giro de los brazos de la máquina (suele estar marcado en rojo). Mete los brazos bajo las almohadillas, justo arriba de los codos, y toma los agarres. Sube los codos hacia los lados, despacio, hasta la altura de los hombros, sin encogerlos; baja controlando.',{rng:[10,15],na:1,mach:'elev_lat_m'});
 ex('pec_deck_inv','Aperturas inversas en máquina','hombro_post','gym',1,2.5,'De frente al respaldo, abre los brazos hacia atrás apretando la espalda alta.',{rng:[12,15],na:1,mach:'pec_deck'});
 ex('remo_maq','Remo en máquina con pecho apoyado','tiron_h','gym',1,2.5,'Pecho apoyado en la almohadilla. Jala los codos hacia atrás juntando las escápulas.',{mach:'remo_m'});
 ex('curl_polea','Curl en polea baja','biceps','gym',1,2.5,'Codos pegados al torso. Sube la barra o la cuerda sin balancearte y baja lento.',{rng:[10,15],na:1,mach:'poleas'});
@@ -344,7 +344,7 @@ const MACH={
   press_inc:{n:'Press inclinado en máquina',t:'Máquina',look:'Como el press de pecho, pero el asiento y las manijas quedan inclinados hacia arriba.'},
   pec_deck:{n:'Aperturas / pec deck',t:'Máquina',look:'Asiento con dos brazos articulados a los lados que juntas al frente (o abres hacia atrás).'},
   press_hombro:{n:'Press de hombro en máquina',t:'Máquina',look:'Asiento con manijas a la altura de los hombros que empujas hacia arriba.'},
-  elev_lat_m:{n:'Elevaciones laterales en máquina',t:'Máquina',look:'Asiento con almohadillas a los costados de los brazos que levantas hacia los lados.'},
+  elev_lat_m:{n:'Elevaciones laterales en máquina',t:'Máquina',look:'Asiento con dos brazos acolchados (rodillos) a los costados; en algunas marcas se llama Deltoid Raise o Lateral Raise.'},
   remo_m:{n:'Remo en máquina',t:'Máquina',look:'Asiento con una almohadilla para el pecho y manijas al frente que jalas hacia ti.'},
   jalon_m:{n:'Jalón al pecho',t:'Polea',look:'Asiento con almohadillas sobre los muslos y una barra larga colgando de una polea alta.'},
   poleas:{n:'Poleas (cruce o torre de poleas)',t:'Polea',look:'Torres con cables y poleas ajustables en altura, con agarres, cuerdas y barras para enganchar.'},
