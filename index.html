@@ -227,6 +227,8 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .ytl{position:absolute;left:12px;bottom:10px;color:#fff;font-weight:700;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.7)}
 .cmf input,.fbk input{min-height:46px;border-radius:12px;padding:0 12px;border:1px solid var(--line);font:16px var(--body);background:var(--card);color:var(--ink);width:100%;box-sizing:border-box}
 .set.nw{grid-template-columns:26px 1fr 52px}.set.wp.nw,.sethd.nw{grid-template-columns:26px 64px 1fr 52px}.f span{flex:0 0 auto}.f input{min-width:2.2ch}
+.sstk{position:sticky;top:0;z-index:20;margin:-28px -16px 0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
+.sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 </style>
 </head>
 <body>
@@ -1312,8 +1314,9 @@ function swapPicker(k,di,si,curEx){
 function vSesion(){
   const D=S.draft,d=S.plan.days[D.day];
   const nEx=D.items.length,nDone=D.items.filter(function(it){return it.sets.length&&it.sets.every(function(x){return x.done;});}).length;
-  let h='<div class="sbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+nEx+'" aria-valuenow="'+nDone+'" aria-label="Ejercicios terminados"><i style="width:'+(nEx?nDone/nEx*100:0)+'%"></i></div><p class="small mute" style="margin-top:-8px">'+nDone+' de '+nEx+' ejercicios terminados</p>';
-  h+='<header class="row between"><div><span class="label">'+(D.ready==='cansado'?'Sesión ligera':'Sesión en curso')+'</span><h1>'+d.name+'</h1><span class="small mute">Llevas <b id="el">'+fm((Date.now()-D.t)/60000)+'</b> · empezaste a las '+new Date(D.t).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})+'</span></div></header><div class="row" style="gap:8px"><button class="btn ghost sm" data-act="wu">🔥 Calentamiento</button><button class="btn ghost sm" data-act="leave">Salir</button></div>';
+  const t0=new Date(D.t).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'});
+  let h='<div class="sstk" role="status"><div class="row between" style="flex-wrap:nowrap;gap:10px"><div style="min-width:0"><span class="small mute">'+(D.ready==='cansado'?'Sesión ligera':'En curso')+' · inicio '+t0+'</span><b class="sstn">'+esc(d.name)+'</b></div><b id="elx" class="selx">'+clk(Date.now()-D.t)+'</b></div><div class="sbar" role="progressbar" aria-valuemin="0" aria-valuemax="'+nEx+'" aria-valuenow="'+nDone+'" aria-label="Ejercicios terminados"><i style="width:'+(nEx?nDone/nEx*100:0)+'%"></i></div><span class="small mute">'+nDone+' de '+nEx+' ejercicios terminados</span></div>';
+  h+='<div class="row" style="gap:8px"><button class="btn ghost sm" data-act="wu">🔥 Calentamiento</button><button class="btn ghost sm" data-act="leave">Salir</button></div>';
   D.items.forEach(function(it,i){
     const e=X[it.ex],p=S.prog[it.ex],open=UI.cue[it.ex]===true;
     const U=unitOf(it.ex),H=histEx(it.ex);
@@ -2012,7 +2015,8 @@ document.addEventListener('change',function(ev){
   review(+t.dataset.rv,files);
 });
 load();render();
-setInterval(function(){const e=document.getElementById('el');if(e&&S&&S.draft)e.textContent=fm((Date.now()-S.draft.t)/60000);},15000);
+function clk(ms){const t=Math.max(0,Math.floor(ms/1000)),h=Math.floor(t/3600),m=Math.floor(t%3600/60),x=t%60;return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(x).padStart(2,'0');}
+setInterval(function(){const e=document.getElementById('elx');if(e&&S&&S.draft)e.textContent=clk(Date.now()-S.draft.t);},1000);
 </script>
 <script>try{if('serviceWorker' in navigator&&/^https?:$/.test(location.protocol))navigator.serviceWorker.register('sw.js').catch(function(){});}catch(e){}</script>
 </body>
