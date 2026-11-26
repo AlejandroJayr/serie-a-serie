@@ -231,6 +231,9 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 #app[data-v="resumen"]>section.card:nth-of-type(1){background:var(--mint)}
 .ngym{color:var(--ok);font-weight:600;font-size:12px}
+.calc{background:var(--bg);border-radius:16px;padding:12px;display:flex;flex-direction:column;gap:10px}.big1{font:800 22px var(--disp)}
+.ctab{width:100%;border-collapse:collapse;font-size:15px}.ctab th{font-size:12px;color:var(--mute);text-align:left;font-weight:600;padding:4px 6px}.ctab td{padding:8px 6px;border-top:1px solid var(--line)}.ctab tr.in td{background:color-mix(in srgb,var(--lime) 22%,transparent)}.ctab tr.tg td{background:var(--lime);color:var(--lime-ink)}
+.vol{display:flex;flex-direction:column;gap:6px}.volr{display:grid;grid-template-columns:110px 1fr 36px;gap:8px;align-items:center;font-size:14px}.volr b{text-align:right;font-variant-numeric:tabular-nums}.volb{position:relative;height:12px;border-radius:99px;background:var(--chip);overflow:hidden}.volb i{display:block;height:100%;border-radius:99px;background:var(--control)}.volb i.ok{background:var(--ok)}.volb i.hi{background:#f5a524}.volb em{position:absolute;top:0;bottom:0;width:2px;background:var(--ink);opacity:.35}
 </style>
 </head>
 <body>
@@ -501,6 +504,29 @@ function swapSlot(plan,pr,di,si){
   return null;
 }
 const RIR={sobro:4,bien:2,limite:1,fallo:0};
+function e1rmOf(w,r,rir){return w*(1+(r+(rir!=null?rir:2))/30);}
+function e1rmHist(ex){
+  let best=null;const fbR={sobro:4,bien:2,limite:1,fallo:0},lim=Date.now()-56*864e5;
+  (S.log||[]).forEach(function(l){if(l.t<lim)return;(l.items||[]).forEach(function(it){if(it.ex!==ex)return;(it.sets||[]).forEach(function(st){if(!(st.w>0&&st.r>0&&st.r<=20))return;const rir=st.rir!=null?st.rir:(fbR[it.fb]!=null?fbR[it.fb]:2),v=e1rmOf(st.w,st.r,rir);if(!best||v>best.v)best={v:v,w:st.w,r:st.r,rir:rir,t:l.t};});});});
+  if(S.draft)S.draft.items.forEach(function(it){if(it.ex!==ex)return;it.sets.forEach(function(st){const w=parseFloat(st.w),r=parseInt(st.r,10);if(st.done&&w>0&&r>0&&r<=20){const v=e1rmOf(w,r,st.rir);if(!best||v>best.v)best={v:v,w:w,r:r,rir:st.rir!=null?st.rir:2,t:Date.now(),hoy:1};}});});
+  return best;
+}
+function calcBox(it,i){
+  const e=X[it.ex],U=unitOf(it.ex),sl=slotOf(it),C=UI.calcIn||{};
+  let b=e1rmHist(it.ex),man=false;
+  if(C.w>0&&C.r>0){b={v:e1rmOf(C.w,C.r,C.rir!=null?C.rir:2),w:C.w,r:C.r,rir:C.rir!=null?C.rir:2};man=true;}
+  let h='<div class="calc"><div class="row between"><b>🧮 Calculadora de peso</b><button class="btn ghost sm" data-act="calc" data-i="'+i+'">Cerrar</button></div>';
+  if(b){
+    h+='<p class="small">Tu máximo estimado (1 repetición): <b class="big1">'+fw(b.v,U)+'</b></p><p class="small mute">'+(man?'Con lo que escribiste':'Según tu mejor serie'+(b.hoy?' de hoy':' de las últimas 8 semanas'))+': '+fw(b.w,U)+' × '+b.r+(b.rir!=null?' con '+b.rir+' en reserva (RPE '+(10-Math.min(4,b.rir))+')':'')+'. Es una estimación, no lo intentes: sirve para elegir pesos.</p>';
+    const tgt=tgtReps(it),reps=[6,8,10,12,15].concat([6,8,10,12,15].indexOf(tgt)<0&&tgt>=3&&tgt<=20?[tgt]:[]).sort(function(a,b){return a-b;});
+    h+='<table class="ctab"><thead><tr><th>Reps</th><th>Peso sugerido</th><th>% del máximo</th></tr></thead><tbody>'+reps.map(function(r){const w=r5(b.v/(1+(r+2)/30),e.step),inR=r>=sl.lo&&r<=sl.hi;return '<tr class="'+(inR?'in':'')+(r===tgt?' tg':'')+'"><td>'+r+'</td><td><b>'+fw(w,U)+'</b></td><td>'+Math.round(w/b.v*100)+'%</td></tr>';}).join('')+'</tbody></table>';
+    const wt=r5(b.v/(1+(tgt+2)/30),e.step);
+    h+='<p class="small"><b>Para hipertrofia hoy:</b> '+sl.sets+' series de '+sl.lo+'–'+sl.hi+' reps, dejando 1 a 3 en reserva (RPE 7–9). Empieza con <b>'+fw(wt,U)+' × '+tgt+'</b>; cuando completes '+sl.hi+' reps en todas las series, sube el peso.</p>';
+    h+='<button class="btn" data-act="calcuse" data-i="'+i+'" data-w="'+wt+'">Usar '+fw(wt,U)+' en mis series</button>';
+  }else h+='<p class="small">Aún no tengo series tuyas de este ejercicio. Escribe un peso que ya hayas levantado y cuántas repeticiones hiciste, y te calculo el resto.</p>';
+  h+='<div class="row" style="flex-wrap:nowrap;gap:8px"><label class="f"><input type="number" inputmode="decimal" data-calcin="w" placeholder="Peso" value="'+(C.w?dw(C.w,U):'')+'"><span>'+U+'</span></label><label class="f"><input type="number" inputmode="numeric" data-calcin="r" placeholder="Reps" value="'+(C.r||'')+'"><span>reps</span></label></div><p class="small mute">Opcional: escribe otra serie para recalcular.</p>';
+  return h+'</div>';
+}
 function r5(x,step){return step?Math.max(step,Math.round(x/step)*step):0;}
 function e1(w,r){return w>0?w*(1+r/30):r;}
 let UNIT='kg';const KG=0.45359237;
@@ -1353,7 +1379,8 @@ function vSesion(){
     if(UI.pl&&UI.pl.i===i)h+=plPanel(it);
     h+='<p class="small mute"><span class="pill">'+zona+'</span>'+(H.last?' Última vez: <b>'+setTxt(it.ex,H.last.sets)+'</b>':'')+'</p>';
     if(p&&p.plat)h+='<p class="note">Estancado en las últimas sesiones. Si quieres, cámbialo.</p>';
-    h+='<div class="chips"><button class="chip" style="min-height:36px" data-act="cue" data-ctx="s" data-ex="'+it.ex+'" aria-pressed="'+!!open+'">Cómo se hace</button>'+(e.step?'<button class="chip" style="min-height:36px" data-act="exu" data-ex="'+it.ex+'" data-v="'+(U==='kg'?'lb':'kg')+'" aria-label="Cambiar a '+(U==='kg'?'libras':'kilos')+'">Pesos en '+U+' · cambiar</button>':'')+(isPlate(e)?'<button class="chip" style="min-height:36px" data-act="plopen" data-i="'+i+'" aria-pressed="'+(!!UI.pl&&UI.pl.i===i)+'">Discos</button>':'')+'<button class="chip" style="min-height:36px" data-act="rv" data-i="'+i+'" aria-pressed="'+(UI.rv===i)+'">Revisar mi técnica</button></div>';
+    h+='<div class="chips"><button class="chip" style="min-height:36px" data-act="cue" data-ctx="s" data-ex="'+it.ex+'" aria-pressed="'+!!open+'">Cómo se hace</button>'+(e.step?'<button class="chip" style="min-height:36px" data-act="exu" data-ex="'+it.ex+'" data-v="'+(U==='kg'?'lb':'kg')+'" aria-label="Cambiar a '+(U==='kg'?'libras':'kilos')+'">Pesos en '+U+' · cambiar</button>':'')+(isPlate(e)?'<button class="chip" style="min-height:36px" data-act="plopen" data-i="'+i+'" aria-pressed="'+(!!UI.pl&&UI.pl.i===i)+'">Discos</button>':'')+(e.step?'<button class="chip" style="min-height:36px" data-act="calc" data-i="'+i+'" aria-pressed="'+(UI.calc===i)+'">🧮 Calcular peso</button>':'')+'<button class="chip" style="min-height:36px" data-act="rv" data-i="'+i+'" aria-pressed="'+(UI.rv===i)+'">Revisar mi técnica</button></div>';
+    if(UI.calc===i&&e.step)h+=calcBox(it,i);
     if(open)h+=guideBox(e);
     if(UI.rv===i)h+=rvPanel(i);
     if(H.n&&H.last&&H.last.sets&&H.last.sets.length)h+='<div class="sethd'+(e.step?'':' nw')+'"><span>#</span><span>Anterior</span>'+(e.step?'<span>'+U+'</span>':'')+'<span>'+(e.u==='s'?'Seg':'Reps')+'</span><span></span></div>';
@@ -1524,6 +1551,9 @@ function vProgreso(){
   {const w4=wk(Date.now())-21*864e5,n4=S.log.filter(function(l){return l.t>=w4;}).length,g4=S.profile.dias*4,cons=Math.min(100,Math.round(n4/g4*100));
    const prw=S.log.filter(function(l){return l.t>=w0;}).reduce(function(a,l){return a+(l.prs||0);},0);
    h+='<section class="card"><div class="row between" style="flex-wrap:nowrap"><div><span class="label">Constancia</span><div><span class="big" style="font-size:32px">'+cons+'%</span></div><p class="small mute">'+n4+' de '+g4+' sesiones en las últimas 4 semanas</p></div><div style="text-align:center"><span class="pill warn" style="font-size:15px">🏆 '+prw+'</span><p class="small mute" style="margin-top:4px">Récords<br>esta semana</p></div></div></section>';}
+  {const vs={};S.log.filter(function(l){return l.t>=w0;}).forEach(function(l){(l.items||[]).forEach(function(it){const e=X[it.ex];if(!e)return;const n=(it.sets||[]).length,m=musOf(e);m.main.forEach(function(k){vs[k]=(vs[k]||0)+n;});m.sec.forEach(function(k){vs[k]=(vs[k]||0)+n*0.5;});});});
+   const ks=MUSL.filter(function(k){return MN[k];});
+   h+='<section class="card"><span class="label">Series por músculo esta semana</span><p class="small mute">Para hipertrofia se recomiendan unas <b>10 a 20 series por músculo a la semana</b>, cada una con 6–15 reps y 1–3 en reserva. Las de apoyo cuentan como media.</p><div class="vol">'+ks.map(function(k){const v=Math.round((vs[k]||0)*10)/10,pc=Math.min(100,v/20*100),st=v>=10?(v>20?'hi':'ok'):'lo';return '<div class="volr"><span>'+MN[k]+'</span><div class="volb"><i class="'+st+'" style="width:'+pc+'%"></i><em style="left:50%"></em></div><b>'+v+'</b></div>';}).join('')+'</div><p class="small mute">La línea marca 10 series (mínimo recomendado). Verde: en rango. Gris: te faltan.</p></section>';}
   const cur=wk(Date.now()),W=[];
   for(let i=7;i>=0;i--){const t=new Date(cur);t.setDate(t.getDate()-7*i);W.push(t.getTime());}
   const cnt=W.map(function(t){return S.log.filter(function(l){return wk(l.t)===t;}).length;});
@@ -1826,6 +1856,7 @@ document.addEventListener('visibilitychange',wakeSync);
 /* ---------- eventos ---------- */
 document.addEventListener('input',function(ev){
   const t=ev.target;
+  if(t.dataset&&t.dataset.calcin&&UI.calc!=null){UI.calcIn=UI.calcIn||{};const it=S.draft.items[UI.calc],U=unitOf(it.ex),v=parseFloat(t.value);UI.calcIn[t.dataset.calcin]=t.dataset.calcin==='w'?(v>0?(U==='lb'?v/2.20462:v):0):(parseInt(t.value,10)||0);clearTimeout(UI._ct);UI._ct=setTimeout(function(){const f=document.activeElement&&document.activeElement.dataset.calcin;render();if(f){const n=document.querySelector('[data-calcin="'+f+'"]');if(n){n.focus();const L=n.value.length;try{n.setSelectionRange(L,L);}catch(e){}}}},500);return;}
   if(t.dataset&&t.dataset.cmn!=null&&UI.cm){UI.cm.n=t.value.slice(0,60);return;}
   if(t.dataset&&t.dataset.fbk){UI.fbk=UI.fbk||{};UI.fbk[t.dataset.fbk]=t.value.slice(0,1500);try{localStorage.setItem('alfayo.fbk',JSON.stringify(UI.fbk));}catch(e){}return;}
   if(t.dataset&&t.dataset.sm){const l=S.log[S.log.length-1];if(l){const x=parseInt(t.value,10);l[t.dataset.sm]=(isNaN(x)||x<=0)?null:x;save();}return;}
@@ -1880,6 +1911,8 @@ document.addEventListener('click',function(ev){
     location.href=href;UI.fbk={};try{localStorage.removeItem('alfayo.fbk');}catch(e){}UI.fbkOpen=null;setTimeout(function(){UI.toast='¡Gracias! Revisa tu app de correo y toca Enviar';render();},400);return;}
   if(a==='ytplay'){UI.yt=d.k||null;render();return;}
   if(a==='esc'){S.esc=d.v;save();render();return;}
+  if(a==='calc'){UI.calc=UI.calc===+d.i?null:+d.i;UI.calcIn={};render();return;}
+  if(a==='calcuse'){const it=S.draft.items[+d.i],w=+d.w;it.sets.forEach(function(st){if(!st.done)st.w=w;});save();UI.toast='Listo: '+fw(w,unitOf(it.ex))+' en tus series pendientes';render();return;}
   if(a==='rpeinfo'){if(d.i==null){UI.rpe=null;}else{const i=+d.i,j=+d.j;UI.rpe=(UI.rpe&&UI.rpe.i===i&&UI.rpe.j===j)?null:{i:i,j:j};}render();return;}
   if(a==='rir'){UI.act=+d.i;const st=S.draft.items[+d.i].sets[+d.j],v=+d.v;st.rir=st.rir===v?null:v;save();render();return;}
   if(a==='fb'){const it=S.draft.items[+d.i];it.fb=it.fb===d.v?'':d.v;save();render();return;}
