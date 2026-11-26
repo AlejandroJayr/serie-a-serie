@@ -229,6 +229,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .set.nw{grid-template-columns:26px 1fr 52px}.set.wp.nw,.sethd.nw{grid-template-columns:26px 64px 1fr 52px}.f span{flex:0 0 auto}.f input{min-width:2.2ch}
 .sstk{position:sticky;top:0;z-index:20;margin:-28px -16px 0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+#app[data-v="resumen"]>section.card:nth-of-type(1){background:var(--mint)}
 </style>
 </head>
 <body>
@@ -1769,8 +1770,8 @@ function renderInner(){
     UI.ob=UI.ob||Object.assign({},OB_DEF);tabs.style.display='none';app.innerHTML=vOnboard();return;
   }
   if(UI.ob){tabs.style.display='none';app.innerHTML=vOnboard();return;}
-  if(UI.summary){tabs.style.display='none';app.innerHTML=vResumen();return;}
-  if(UI.inSession&&S.draft){tabs.style.display='none';app.innerHTML=vSesion();return;}
+  if(UI.summary){tabs.style.display='none';app.dataset.v='resumen';app.innerHTML=vResumen();return;}
+  if(UI.inSession&&S.draft){tabs.style.display='none';app.dataset.v='sesion';app.innerHTML=vSesion();return;}
   if(UI.wu!=null){tabs.style.display='none';app.dataset.v='wu';app.innerHTML=vWarm();return;}
   tabs.style.display='flex';
   const NI={'hoy': '<path d="M3 11l9-7 9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>', 'plan': '<rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h8M8 16h5"/>', 'progreso': '<path d="M4 20V10M10 20V4M16 20v-8M22 20H2"/>', 'cuerpo': '<circle cx="12" cy="5" r="2.5"/><path d="M6 21l2-9-2-3h12l-2 3 2 9M9 12h6"/>', 'ajustes': '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M4.9 19.1L7 17M17 7l2.1-2.1"/>'};$('#tabin').innerHTML=[['hoy','Hoy'],['plan','Plan'],['progreso','Progreso'],['cuerpo','Cuerpo'],['ajustes','Ajustes']].map(function(t){return '<button data-act="tab" data-v="'+t[0]+'"'+(UI.tab===t[0]?' aria-current="page"':'')+'><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'+NI[t[0]]+'</svg><span>'+t[1]+'</span></button>';}).join('');
