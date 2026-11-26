@@ -226,6 +226,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .ytp{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:46px;border-radius:14px;background:#ff0033;color:#fff;font-size:22px;display:grid;place-items:center}
 .ytl{position:absolute;left:12px;bottom:10px;color:#fff;font-weight:700;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.7)}
 .cmf input,.fbk input{min-height:46px;border-radius:12px;padding:0 12px;border:1px solid var(--line);font:16px var(--body);background:var(--card);color:var(--ink);width:100%;box-sizing:border-box}
+.set.nw{grid-template-columns:26px 1fr 52px}.set.wp.nw,.sethd.nw{grid-template-columns:26px 64px 1fr 52px}.f span{flex:0 0 auto}.f input{min-width:2.2ch}
 </style>
 </head>
 <body>
@@ -1342,12 +1343,12 @@ function vSesion(){
     h+='<div class="chips"><button class="chip" style="min-height:36px" data-act="cue" data-ctx="s" data-ex="'+it.ex+'" aria-pressed="'+!!open+'">Cómo se hace</button>'+(e.step?'<button class="chip" style="min-height:36px" data-act="exu" data-ex="'+it.ex+'" data-v="'+(U==='kg'?'lb':'kg')+'" aria-label="Cambiar a '+(U==='kg'?'libras':'kilos')+'">Pesos en '+U+' · cambiar</button>':'')+(isPlate(e)?'<button class="chip" style="min-height:36px" data-act="plopen" data-i="'+i+'" aria-pressed="'+(!!UI.pl&&UI.pl.i===i)+'">Discos</button>':'')+'<button class="chip" style="min-height:36px" data-act="rv" data-i="'+i+'" aria-pressed="'+(UI.rv===i)+'">Revisar mi técnica</button></div>';
     if(open)h+=guideBox(e);
     if(UI.rv===i)h+=rvPanel(i);
-    if(H.n&&H.last&&H.last.sets&&H.last.sets.length)h+='<div class="sethd"><span>#</span><span>Anterior</span><span>'+(e.step?U:'')+'</span><span>'+(e.u==='s'?'Seg':'Reps')+'</span><span></span></div>';
+    if(H.n&&H.last&&H.last.sets&&H.last.sets.length)h+='<div class="sethd'+(e.step?'':' nw')+'"><span>#</span><span>Anterior</span>'+(e.step?'<span>'+U+'</span>':'')+'<span>'+(e.u==='s'?'Seg':'Reps')+'</span><span></span></div>';
     it.sets.forEach(function(s,j){
       const ph=e.step?(p&&p.w!=null?dw(p.w,U):U):'';
       const pv=H.n&&H.last&&H.last.sets?H.last.sets[j]:null;
-      h+='<div class="set'+(s.done?' done':'')+(H.n&&H.last&&H.last.sets&&H.last.sets.length?' wp':'')+'"><span class="n">'+(j+1)+'</span>'+(H.n&&H.last&&H.last.sets&&H.last.sets.length?'<span class="pv">'+(pv?(e.step?dw(pv.w,U)+' × ':'')+pv.r:'—')+'</span>':'')+
-      (e.step?'<label class="f"><input id="w-'+i+'-'+j+'" type="number" inputmode="decimal" step="any" min="0" data-f="w" data-i="'+i+'" data-j="'+j+'" value="'+(s.w===''||s.w==null?'':dw(s.w,U))+'" placeholder="'+ph+'" aria-label="Peso serie '+(j+1)+'"><span>'+U+'</span></label>':'<span class="f ghost"></span>')+
+      h+='<div class="set'+(s.done?' done':'')+(H.n&&H.last&&H.last.sets&&H.last.sets.length?' wp':'')+(e.step?'':' nw')+'"><span class="n">'+(j+1)+'</span>'+(H.n&&H.last&&H.last.sets&&H.last.sets.length?'<span class="pv">'+(pv?(e.step?dw(pv.w,U)+' × ':'')+pv.r:'—')+'</span>':'')+
+      (e.step?'<label class="f"><input id="w-'+i+'-'+j+'" type="number" inputmode="decimal" step="any" min="0" data-f="w" data-i="'+i+'" data-j="'+j+'" value="'+(s.w===''||s.w==null?'':dw(s.w,U))+'" placeholder="'+ph+'" aria-label="Peso serie '+(j+1)+'"><span>'+U+'</span></label>':'')+
       '<label class="f"><input id="r-'+i+'-'+j+'" type="number" inputmode="numeric" min="0" data-f="r" data-i="'+i+'" data-j="'+j+'" value="'+s.r+'" placeholder="'+tgtReps(it)+'" aria-label="'+(e.u==='s'?'Segundos':'Repeticiones')+' serie '+(j+1)+'"><span>'+(e.u==='s'?'seg':'reps')+'</span></label>'+
       '<button class="chk" data-act="chk" data-i="'+i+'" data-j="'+j+'" aria-pressed="'+s.done+'" aria-label="Serie '+(j+1)+' hecha"><svg width="22" height="22" viewBox="0 0 20 20" aria-hidden="true" style="display:block;margin:auto"><path d="M4 10.5l4 4 8-9" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>';
       if(e.u==='s'&&!s.done)h+='<button class="btn ghost sm swbtn" data-act="swst" data-i="'+i+'" data-j="'+j+'">⏱ Iniciar cronómetro · meta '+tgtReps(it)+' s</button>';
