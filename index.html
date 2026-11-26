@@ -227,6 +227,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .ytl{position:absolute;left:12px;bottom:10px;color:#fff;font-weight:700;font-size:14px;text-shadow:0 1px 4px rgba(0,0,0,.7)}
 .cmf input,.fbk input{min-height:46px;border-radius:12px;padding:0 12px;border:1px solid var(--line);font:16px var(--body);background:var(--card);color:var(--ink);width:100%;box-sizing:border-box}
 .set.nw{grid-template-columns:26px 1fr 52px}.set.wp.nw,.sethd.nw{grid-template-columns:26px 64px 1fr 52px}.f span{flex:0 0 auto}.f input{min-width:2.2ch}
+.wgrid{display:grid;grid-template-columns:1fr;gap:10px}
+.wf{display:grid;grid-template-columns:40px 1fr 112px;gap:10px;align-items:center}
+.wf .f{min-height:46px;padding:0 10px}.wf .f input{font-size:18px}
+.wic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;background:color-mix(in srgb,currentColor 14%,transparent)}
+.wic svg{width:22px;height:22px}
+.w-dur{color:var(--mute)}.w-hr{color:#e5484d}.w-hrx{color:#c2185b}.w-kcal{color:#f2552c}
+.wtx{display:flex;flex-direction:column;line-height:1.25}.wtx b{font-size:15px}.wtx small{font-size:12.5px;color:var(--mute)}
+.wtip summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--acc);min-height:32px;display:flex;align-items:center}
 .sstk{position:sticky;top:0;z-index:20;margin:-28px -16px 0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 #app[data-v="resumen"]>section.card:nth-of-type(1){background:var(--mint)}
@@ -242,6 +250,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .tsec{background:var(--card);border-radius:16px;padding:12px;color:var(--ink);font-size:15px;line-height:1.45}
 .tsteps{margin:0;padding:0;list-style:none;counter-reset:t;display:flex;flex-direction:column;gap:8px}.tsteps li{counter-increment:t;display:grid;grid-template-columns:28px 1fr;gap:6px}.tsteps li::before{content:counter(t);width:24px;height:24px;border-radius:50%;background:var(--ink);color:var(--bg);font:800 13px/24px var(--body);text-align:center}
 .terr{background:color-mix(in srgb,#e5484d 12%,var(--card))}.terr ul{margin:0;padding-left:18px;display:flex;flex-direction:column;gap:6px}.terr li::marker{color:#e5484d}
+.seq{position:relative;aspect-ratio:1/1;border-radius:16px;overflow:hidden;background:var(--card)}.seq img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.seq .s2{animation:seqf 2.4s infinite}.seql{position:absolute;left:10px;bottom:10px}.seql b{position:absolute;left:0;bottom:0;white-space:nowrap;background:rgba(20,20,26,.78);color:#fff;font-size:13px;padding:4px 10px;border-radius:99px}.seql .l2{animation:seqf 2.4s infinite}.seql .l1{animation:seqf 2.4s infinite reverse}
+@keyframes seqf{0%,42%{opacity:0}50%,92%{opacity:1}100%{opacity:0}}
+@media (prefers-reduced-motion:reduce){.seq .s2,.seql b{animation:none}.seq .s2{opacity:0}.seql .l2{opacity:0}}
 </style>
 </head>
 <body>
@@ -1059,7 +1071,7 @@ function vOnboard(){
   '<span class="label" style="margin-top:6px">Tiempo por sesión</span>'+chips('min',[[30,'30 min'],[45,'45 min'],[60,'1 h'],[75,'1 h 15'],[90,'1 h 30'],[120,'2 h']],o.min)+'</section>'+
   splitSec(o)+'<section class="card"><span class="label">5 · Dónde entrenas</span>'+opts('equipo',EQUIPOS,o.equipo)+'</section>'+
   '<section class="card"><span class="label">6 · Unidad de peso</span>'+chips('unit',[['kg','Kilos (kg)'],['lb','Libras (lb)']],o.unit||'kg')+'<p class="small mute">Puedes cambiarla cuando quieras en Ajustes.</p></section>'+
-  '<p class="health">🩺 <b>Antes de empezar:</b> '+HEALTH+'</p><button class="btn" data-act="mkplan">Crear mi plan</button>';
+  '<p class="health">🩺 <b>Antes de empezar:</b> '+HEALTH+'</p><p class="small mute">⌚ Recomendado: entrena con un reloj inteligente para registrar tus latidos por minuto y calorías al final de cada sesión.</p><button class="btn" data-act="mkplan">Crear mi plan</button>';
 }
 function presc(it){
   const e=X[it.ex],s=slotOf(it),p=S.prog[it.ex],u=e.u==='s'?' s':' reps';
@@ -1263,12 +1275,14 @@ const TEC={"sent_barra":{"i":["Barra apoyada en la parte alta de la espalda (tra
 ;
 const PTYPE={sentadilla:'Piernas',zancada:'Piernas',bisagra:'Piernas · cadera',gluteo:'Glúteo',gemelo:'Piernas',empuje_h:'Empuje',empuje_inc:'Empuje',empuje_v:'Empuje',triceps:'Empuje',hombro_lat:'Hombro',tiron_h:'Tirón',tiron_v:'Tirón',biceps:'Tirón',hombro_post:'Tirón',core:'Core'};
 function breathOf(e){if(e.p==='core')return e.u==='s'?'Respira normal y corto, sin soltar el abdomen.':'Exhala al contraer el abdomen, inhala al regresar.';const t=PTYPE[e.p]||'';if(/Tirón/.test(t))return 'Exhala al jalar, inhala al regresar.';if(/Piernas|Glúteo/.test(t)&&!e.iso)return 'Toma aire y aprieta el abdomen antes de bajar; exhala al terminar de subir.';return 'Inhala al bajar o regresar, exhala en el esfuerzo.';}
+const PH2={};
+function seqHTML(id){const a=PH[id],b=PH2[id];if(!a||!b)return '';return '<div class="seq" role="img" aria-label="Posición inicial y final"><img src="'+a+'" alt=""><img class="s2" src="'+b+'" alt=""><span class="seql"><b class="l1">1 · Inicio</b><b class="l2">2 · Final</b></span></div>';}
 function guideBox(e){
   const g=gearOf(e),m=musOf(e),T=TEC[e.id]||(e.custom&&TEC[(S.custom[e.id]||{}).base]);
   const ol=function(a){return '<ol class="tsteps">'+a.map(function(x){return '<li>'+x+'</li>';}).join('')+'</ol>';};
   let h='<div class="cue tec">';
   h+='<div class="ttags"><span class="ttag">'+(e.iso?'Aislado · 1 articulación':'Compuesto · varias articulaciones')+'</span><span class="ttag">'+(PTYPE[e.p]||'')+'</span><span class="ttag">'+g.t+'</span></div>';
-  h+='<div class="tvis">'+demoHTML(e.id)+'<div class="tmus"><div style="width:100%;max-width:240px;margin:0 auto">'+muscleSVG(m,null,'#f2552c')+'</div><div><span class="tlab">🎯 Principal</span><b>'+m.main.map(function(x){return MN[x];}).join(', ')+'</b></div>'+(m.sec.length?'<div><span class="tlab">Apoyo</span><span>'+m.sec.map(function(x){return MN[x];}).join(', ')+'</span></div>':'')+'</div></div>';
+  h+='<div class="tvis">'+(seqHTML(e.id)||demoHTML(e.id))+'<div class="tmus"><div style="width:100%;max-width:240px;margin:0 auto">'+muscleSVG(m,null,'#f2552c')+'</div><div><span class="tlab">🎯 Principal</span><b>'+m.main.map(function(x){return MN[x];}).join(', ')+'</b></div>'+(m.sec.length?'<div><span class="tlab">Apoyo</span><span>'+m.sec.map(function(x){return MN[x];}).join(', ')+'</span></div>':'')+'</div></div>';
   h+='<div class="tkey">💡 <b>Clave:</b> '+e.cue+'</div>';
   if(T){
     h+='<div class="tsec"><span class="tlab">📍 Posición inicial</span>'+ol(T.i)+'</div>';
@@ -1433,6 +1447,20 @@ function vSesion(){
   if(!any)h+='<p class="small mute" style="text-align:center">Marca al menos una serie como hecha. Si dejas vacío el campo de repeticiones, se toma la meta.</p>';
   return h;
 }
+const WICO={
+ dur:'<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="8" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 9v4l3 2M9 2h6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+ hr:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" fill="currentColor"/></svg>',
+ hrx:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 21s-8-5.2-8-11a4.5 4.5 0 0 1 8-2.8A4.5 4.5 0 0 1 20 10c0 5.8-8 11-8 11z" fill="currentColor"/><path d="M12 15V9m-3 3 3-3 3 3" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+ kcal:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2c1 4 6 6 6 12a6 6 0 0 1-12 0c0-3 2-5 3-6 0 2 1 3 2 3 0-4-1-6 1-9z" fill="currentColor"/></svg>'};
+const WINFO=[['dur','Duración','min','La mide la app sola. Corrígela si quieres.'],['hr','Latidos por minuto (promedio)','lpm','Cuánto trabajó tu corazón en toda la sesión.'],['hrx','Latido más alto','lpm','El pico: el momento de mayor esfuerzo.'],['kcal','Calorías activas','kcal','Las que quemaste entrenando, sin contar las de reposo.']];
+function watchCard(LL){
+  let h='<section class="card wch"><div class="row between"><span class="label">⌚ Datos de tu reloj</span><span class="small mute">Opcional</span></div><div class="wgrid">';
+  WINFO.forEach(function(w){h+='<label class="wf"><span class="wic w-'+w[0]+'">'+WICO[w[0]]+'</span><span class="wtx"><b>'+w[1]+'</b><small>'+w[3]+'</small></span><span class="f"><input type="number" inputmode="numeric" min="0" data-sm="'+w[0]+'" value="'+(LL[w[0]]||'')+'" placeholder="—" aria-label="'+w[1]+'"><span>'+w[2]+'</span></span></label>';});
+  h+='</div><p class="small mute">'+(LL.dur?'':'No pude calcular la duración: escríbela. ')+'<b>lpm</b> = latidos por minuto. En tu reloj búscalo como "frecuencia cardíaca": promedio y máxima.</p>';
+  h+='<details class="wtip"><summary>¿Cómo lo saco de mi reloj?</summary><p class="small">Al empezar a entrenar, abre en tu reloj un entrenamiento de <b>Fuerza</b> ("Fuerza tradicional" en Apple Watch, "Pesas" en Galaxy Watch, "Fuerza" en Garmin, Fitbit, Amazfit o Xiaomi). Al terminar, detenlo y copia aquí la duración, la frecuencia cardíaca promedio y máxima y las calorías activas que te muestra el resumen.</p><p class="small mute">ALFAYO no se conecta solo al reloj: los datos se escriben a mano.</p></details></section>';
+  return h;
+}
+const WATCH_REC='<section class="card wch"><span class="label">⌚ Te recomendamos un reloj inteligente</span><p class="small">Con un Apple Watch, Galaxy Watch, Garmin, Fitbit, Amazfit o Xiaomi Band puedes medir tus latidos por minuto, tu latido más alto y las calorías de cada sesión. Inicia un entrenamiento de <b>Fuerza</b> en el reloj cuando empieces y, al terminar, copia los datos en el resumen de la sesión. Así verás en Progreso cómo mejora tu condición.</p></section>';
 const FEEDBACK_TO='zaztreagenciacreativa@gmail.com';
 function fbCard(ctx){
   const F=UI.fbk||{},open=UI.fbkOpen===ctx;
@@ -1454,11 +1482,7 @@ function vResumen(){
   const R=UI.summary;
   let h='<header><span class="label">Sesión terminada</span><h1 style="margin-top:4px">'+R.name+'</h1></header>';
   const LL=S.log[S.log.length-1]||{};
-  h+='<section class="card"><span class="label">Tu sesión</span><div class="row">'+
-    '<label class="f" style="flex:1 1 140px"><input type="number" inputmode="numeric" min="0" data-sm="dur" value="'+(LL.dur||'')+'" placeholder="Duración" aria-label="Duración en minutos"><span>min</span></label>'+
-    '<label class="f" style="flex:1 1 140px"><input type="number" inputmode="numeric" min="0" data-sm="hr" value="'+(LL.hr||'')+'" placeholder="Pulso prom." aria-label="Frecuencia cardíaca promedio"><span>lpm</span></label>'+
-    '<label class="f" style="flex:1 1 140px"><input type="number" inputmode="numeric" min="0" data-sm="hrx" value="'+(LL.hrx||'')+'" placeholder="Pulso máx." aria-label="Frecuencia cardíaca máxima"><span>lpm</span></label></div>'+
-    '<p class="small mute">Duración medida por la app'+(LL.dur?'':' (no la pude calcular: escríbela)')+'. Si grabaste la sesión en tu Apple Watch, copia aquí el pulso promedio y máximo que te muestra la app Fitness. Es opcional.</p></section>';
+  h+=watchCard(LL);
   if(R.prs&&R.prs.length){
     h+='<section class="card prc"><span class="label">Récords personales</span>';
     R.prs.forEach(function(a){h+='<div class="adj"><b>'+a.n+'</b><span>'+(a.k==='peso'?'Peso máximo':(a.k==='1rm'?'Fuerza estimada':'Mejor marca'))+': '+a.a+' → <b>'+a.b+'</b></span></div>';});
@@ -1592,10 +1616,15 @@ function vProgreso(){
   svg+='</svg>';
   h+='<section class="card"><div class="row between"><span class="label">Sesiones por semana</span><span class="small mute">Meta: '+goal+'</span></div>'+svg+'<p class="small mute">'+S.log.length+' sesiones en total.</p></section>';
   const dl=S.log.filter(function(l){return l.dur;}),hl=S.log.filter(function(l){return l.hr;});
-  if(dl.length){
-    const avg=dl.reduce(function(a,l){return a+l.dur;},0)/dl.length,wsm=wk(Date.now()),wtot=S.log.filter(function(l){return l.t>=wsm&&l.dur;}).reduce(function(a,l){return a+l.dur;},0);
-    h+='<section class="card"><span class="label">Tiempo y pulso</span><div class="ex-row"><span>Duración promedio</span><span class="r">'+fm(avg)+'</span></div><div class="ex-row"><span>Esta semana</span><span class="r">'+fm(wtot)+'</span></div>';
-    if(hl.length)h+='<div class="ex-row"><span>Pulso promedio</span><span class="r">'+Math.round(hl.reduce(function(a,l){return a+l.hr;},0)/hl.length)+' lpm</span></div>';
+  if(dl.length||S.log.some(function(l){return l.hr||l.hrx||l.kcal;})){
+    h+='<section class="card"><span class="label">Tiempo y corazón</span>';
+    if(dl.length){const avg=dl.reduce(function(a,l){return a+l.dur;},0)/dl.length,wsm=wk(Date.now()),wtot=S.log.filter(function(l){return l.t>=wsm&&l.dur;}).reduce(function(a,l){return a+l.dur;},0);
+    h+='<div class="ex-row"><span>Duración promedio</span><span class="r">'+fm(avg)+'</span></div><div class="ex-row"><span>Esta semana</span><span class="r">'+fm(wtot)+'</span></div>';}
+    if(hl.length)h+='<div class="ex-row"><span>❤️ Latidos por minuto (promedio)</span><span class="r">'+Math.round(hl.reduce(function(a,l){return a+l.hr;},0)/hl.length)+' lpm</span></div>';
+    {const xl=S.log.filter(function(l){return l.hrx;}),kl=S.log.filter(function(l){return l.kcal;});
+     if(xl.length)h+='<div class="ex-row"><span>📈 Latido más alto (promedio de tus picos)</span><span class="r">'+Math.round(xl.reduce(function(a,l){return a+l.hrx;},0)/xl.length)+' lpm</span></div>';
+     if(kl.length)h+='<div class="ex-row"><span>🔥 Calorías activas por sesión</span><span class="r">'+Math.round(kl.reduce(function(a,l){return a+l.kcal;},0)/kl.length)+' kcal</span></div>';
+     if(!hl.length&&!xl.length)h+='<p class="small mute">⌚ Si usas reloj inteligente, escribe tus latidos al terminar cada sesión para ver aquí tu condición.</p>';}
     h+='</section>';
   }
   const keys=Object.keys(S.prog).filter(function(k){return S.prog[k].hist&&S.prog[k].hist.length;});
@@ -1813,6 +1842,7 @@ function vAjustes(){
   {const a=al(),np=('Notification' in window)?Notification.permission:'na';
    h+='<section class="card"><span class="label">Escala de esfuerzo por serie</span><div class="chips"><button class="chip" data-act="esc" data-v="rpe" aria-pressed="'+(escala()==='rpe')+'">RPE (6 a 10)</button><button class="chip" data-act="esc" data-v="rir" aria-pressed="'+(escala()==='rir')+'">Repeticiones en reserva (0 a 4+)</button></div><p class="small mute">Son lo mismo con distinto nombre: RPE 8 = te quedaban 2. Elige la que te resulte más fácil.</p></section>';
    h+=fbCard('aj');
+   h+=WATCH_REC;
    h+='<section class="card"><span class="label">Tu salud</span><p class="small">🩺 '+HEALTH+'</p></section>';
    h+='<section class="card"><span class="label">Alertas del descanso</span><div class="chips"><button class="chip" data-act="alsnd" aria-pressed="'+a.snd+'">🔔 Sonido '+(a.snd?'activado':'apagado')+'</button><button class="chip" data-act="alntf" aria-pressed="'+(a.ntf&&np==='granted')+'">📲 Notificación '+(a.ntf&&np==='granted'?'activada':'apagada')+'</button></div>';
    h+='<span class="small">Duración de la alarma (tócala en cualquier parte de la pantalla para callarla)</span><div class="chips">'+[4,8,15].map(function(n){return '<button class="chip" data-act="alen" data-v="'+n+'" aria-pressed="'+((a.alen||8)===n)+'">'+n+' s</button>';}).join('')+'</div>';
