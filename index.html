@@ -230,6 +230,7 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .sstk{position:sticky;top:0;z-index:20;margin:-28px -16px 0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 #app[data-v="resumen"]>section.card:nth-of-type(1){background:var(--mint)}
+.ngym{color:var(--ok);font-weight:600;font-size:12px}
 </style>
 </head>
 <body>
@@ -317,6 +318,7 @@ ex('elev_pierna','Elevación de piernas tumbado','core','cor',2,0,'Sube las pier
 
 /* ---- máquinas y equipo ---- */
 ex('leg_ext','Extensión de piernas en máquina','sentadilla','gym',1,2.5,'Ajusta el respaldo para que la rodilla quede en el borde del asiento. Extiende las piernas sin dar golpe arriba y baja lento.',{rng:[10,15],na:1,mach:'ext_pierna'});
+ex('zanc_smith','Zancada en máquina Smith','zancada','gym',1,2.5,'Un pie adelante y otro atrás bajo la barra. Baja recto hasta que la rodilla de atrás casi toque el piso y sube empujando con el talón de adelante.',{mach:'smith'});
 ex('smith_sent','Sentadilla en máquina Smith','sentadilla','gym',1,2.5,'Pies un poco adelante de la barra, espalda recta. Baja hasta que los muslos queden paralelos al piso.',{mach:'smith'});
 ex('leg_curl','Curl femoral en máquina','bisagra','gym',1,2.5,'Ajusta el rodillo justo sobre los talones. Flexiona las rodillas sin levantar la cadera y baja lento.',{rng:[10,15],na:1,mach:'curl_fem'});
 ex('press_inc_maq','Press inclinado en máquina','empuje_inc','gym',1,5,'Ajusta el asiento para que las manos queden a la altura de la parte alta del pecho. Empuja sin despegar la espalda.',{mach:'press_inc'});
@@ -746,7 +748,7 @@ D.legraise=function(v,u){
 };
 const DM={
   sent_barra:['squat','bar'],prensa:['legpress'],sent_goblet:['squat','db'],sent_corp:['squat','body'],sent_pausa:['squat','body',1.6],
-  bulgara:['lunge','bulg-db'],zanc_man:['lunge','db'],zanc_corp:['lunge','body'],bulg_corp:['lunge','bulg'],
+  bulgara:['lunge','bulg-db'],zanc_man:['lunge','db'],zanc_smith:['lunge','bar'],zanc_corp:['lunge','body'],bulg_corp:['lunge','bulg'],
   peso_muerto:['deadlift'],rumano_man:['hinge','db'],rumano_1p:['hinge','1p'],
   hipthrust:['thrust'],puente_man:['bridge','db'],puente_corp:['bridge'],puente_1p:['bridge','1p'],
   press_banca:['bench','bar'],press_maq:['mpress'],press_man:['bench','db'],flex_rod:['pushup','knee'],flex:['pushup'],flex_elev:['pushup','elev'],press_inc_man:['bench','inc'],flex_cerr:['pushup','close'],
@@ -1260,9 +1262,12 @@ function arrowBtn(act,dir,attrs,dis){
 }
 const MUSL=['gluteo','cuad','isquio','pecho','dorsal','trapecio','hombro','hombro_p','biceps','triceps','core','gemelo'];
 const GRP=[['Con máquina o polea',function(t){return t==='Máquina'||t==='Polea';}],['Peso libre',function(t){return t==='Barra'||t==='Mancuerna';}],['Sin equipo o con banda',function(t){return !(t==='Máquina'||t==='Polea'||t==='Barra'||t==='Mancuerna');}]];
+function gymAdd(id){const e=X[id];if(S.gym&&e&&e.mach&&!S.gym[e.mach]){S.gym[e.mach]=true;GYM=S.gym;}}
 function exByMus(m,excl){
   const pr=S.profile,ban=S.ban||{};
-  return Object.keys(X).map(function(id){return X[id];}).filter(function(e){return musOf(e).main.indexOf(m)>=0&&avail(e,pr.equipo)&&!ban[e.id]&&excl.indexOf(e.id)<0;})
+  const _g=GYM;GYM=null;
+  const r=Object.keys(X).map(function(id){return X[id];}).filter(function(e){return musOf(e).main.indexOf(m)>=0&&avail(e,pr.equipo)&&!ban[e.id]&&excl.indexOf(e.id)<0;});
+  GYM=_g;return r
     .sort(function(a,b){const da=Math.abs((a.lvl||1)-pr.nivel),db=Math.abs((b.lvl||1)-pr.nivel);return da-db||a.n.localeCompare(b.n);});
 }
 function grpList(list,act){
@@ -1271,7 +1276,8 @@ function grpList(list,act){
     const L=list.filter(function(e){return g[1](gearOf(e).t);});if(!L.length)return;any=true;
     h+='<span class="label" style="margin-top:6px">'+g[0]+'</span><div style="display:flex;flex-direction:column;gap:8px">';
     L.forEach(function(e){const gg=gearOf(e),m=musOf(e);
-      h+='<button class="opt swo" data-act="'+act+'" data-ex="'+e.id+'"><span class="ph sm">'+thumb(e.id)+'</span><span style="display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0"><b>'+e.n+'</b><span>'+gg.n+' · '+m.main.map(function(x){return MN[x];}).join(', ')+'</span></span></button>';});
+      const ng=S.gym&&e.mach&&!S.gym[e.mach];
+      h+='<button class="opt swo" data-act="'+act+'" data-ex="'+e.id+'"><span class="ph sm">'+thumb(e.id)+'</span><span style="display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0"><b>'+e.n+'</b><span>'+gg.n+' · '+m.main.map(function(x){return MN[x];}).join(', ')+'</span>'+(ng?'<span class="ngym">＋ No está en tu gimnasio: al elegirlo se agrega</span>':'')+'</span></button>';});
     h+='</div>';
   });
   return any?h:'';
@@ -1285,7 +1291,9 @@ function addPicker(k,di){
 }
 function swapPicker(k,di,si,curEx){
   const day=S.plan.days[di],slot=day.slots[si],pr=S.profile,ban=S.ban||{};
+  const _g=GYM;GYM=null;
   const base=UI.sw&&UI.sw.all?PAT[slot.p].map(function(id){return X[id];}).filter(function(e){return avail(e,pr.equipo);}):cands(slot.p,pr);
+  GYM=_g;
   const used=day.slots.map(function(x){return x.ex;});
   const list=base.filter(function(e){return e.id!==curEx&&used.indexOf(e.id)<0&&!ban[e.id];});
   const G=[['Con máquina o polea',function(t){return t==='Máquina'||t==='Polea';}],['Peso libre',function(t){return t==='Barra'||t==='Mancuerna';}],['Sin equipo o con banda',function(t){return !(t==='Máquina'||t==='Polea'||t==='Barra'||t==='Mancuerna');}]];
@@ -1299,7 +1307,8 @@ function swapPicker(k,di,si,curEx){
     const L=list.filter(function(e){return g[1](gearOf(e).t);});if(!L.length)return;any=true;
     h+='<span class="label" style="margin-top:6px">'+g[0]+'</span><div style="display:flex;flex-direction:column;gap:8px">';
     L.forEach(function(e){const gg=gearOf(e),m=musOf(e);
-      h+='<button class="opt swo" data-act="swpick" data-ex="'+e.id+'"><span class="ph sm">'+thumb(e.id)+'</span><span style="display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0"><b>'+e.n+'</b><span>'+gg.n+' · '+m.main.map(function(x){return MN[x];}).join(', ')+'</span></span></button>';});
+      const ng=S.gym&&e.mach&&!S.gym[e.mach];
+      h+='<button class="opt swo" data-act="swpick" data-ex="'+e.id+'"><span class="ph sm">'+thumb(e.id)+'</span><span style="display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0"><b>'+e.n+'</b><span>'+gg.n+' · '+m.main.map(function(x){return MN[x];}).join(', ')+'</span>'+(ng?'<span class="ngym">＋ No está en tu gimnasio: al elegirlo se agrega</span>':'')+'</span></button>';});
     h+='</div>';
   });
   if(!any&&!sm)h+='<p class="note">No hay otro ejercicio parecido con tu equipo. Prueba “Mostrar también los de otro nivel” o quítalo de la rutina.</p>';
@@ -1895,7 +1904,7 @@ document.addEventListener('click',function(ev){
   if(a==='addclose'){UI.add=null;render();return;}
   if(a==='addmus'){if(!UI.add)return;UI.add.mus=UI.add.mus===d.m?null:d.m;render();return;}
   if(a==='addpick'){
-    const A=UI.add;if(!A)return;const day=S.plan.days[A.d],n=mkSlot(X[d.ex],S.profile);day.slots.push(n);
+    const A=UI.add;if(!A)return;gymAdd(d.ex);const day=S.plan.days[A.d],n=mkSlot(X[d.ex],S.profile);day.slots.push(n);
     if(S.draft&&S.draft.day===A.d)S.draft.items.push({ex:n.ex,si:day.slots.length-1,fb:'',sets:newSets(n,n.sets)});
     UI.add=null;save();render();UI.toast='Agregué '+X[d.ex].n;showToast();return;
   }
@@ -1923,7 +1932,7 @@ document.addEventListener('click',function(ev){
     UI.sw=null;save();render();UI.toast='Quitado de tu rutina';showToast();return;
   }
   if(a==='swpick'){
-    const w=UI.sw;if(!w)return;
+    const w=UI.sw;if(!w)return;gymAdd(d.ex);
     const di=w.k==='draft'?S.draft.day:w.d,si=w.k==='draft'?S.draft.items[w.i].si:w.s;
     const n=mkSlot(X[d.ex],S.profile);S.plan.days[di].slots[si]=n;
     if(S.draft&&S.draft.day===di)S.draft.items.forEach(function(it){if(it.si===si&&it.ex!==d.ex){it.ex=d.ex;it.sets=newSets(n,it.sets.length);it.fb='';}});
