@@ -235,6 +235,13 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .w-dur{color:var(--mute)}.w-hr{color:#e5484d}.w-hrx{color:#c2185b}.w-kcal{color:#f2552c}
 .wtx{display:flex;flex-direction:column;line-height:1.25}.wtx b{font-size:15px}.wtx small{font-size:12.5px;color:var(--mute)}
 .wtip summary{cursor:pointer;font-size:14px;font-weight:600;color:var(--acc);min-height:32px;display:flex;align-items:center}
+.rest{background:var(--card)}
+.rcl{display:flex;flex-direction:column;gap:10px}.rci{display:grid;grid-template-columns:36px 1fr;gap:10px;align-items:start}.rci b{font-size:15px}.rce{font-size:22px;line-height:1.2;text-align:center}
+.estl{margin:6px 0 4px;padding-left:20px;display:flex;flex-direction:column;gap:6px;font-size:14px}
+.wstr{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-top:4px}
+.wsd{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:12px;background:var(--chip);font-size:12px}
+.wsd b{font-size:12px;color:var(--mute);font-weight:600}.wsd i{font-style:normal;font-size:15px;line-height:1}
+.wsd.did{background:var(--lime)}.wsd.did b{color:var(--ink)}.wsd.rest i{color:var(--mute)}.wsd.td{outline:2px solid var(--ink);outline-offset:-2px}
 .sstk{position:sticky;top:0;z-index:20;margin:-28px -16px 0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 #app[data-v="resumen"]>section.card:nth-of-type(1){background:var(--mint)}
@@ -1126,18 +1133,73 @@ function vWarm(){
   return h;
 }
 const HEALTH='Consulta a tu médico antes de empezar un programa de ejercicio, sobre todo si tienes alguna lesión, dolor, condición médica, estás embarazada o llevas tiempo sin entrenar. ALFAYO te da rutinas generales; no sustituye la valoración de un médico ni de un entrenador. Si sientes dolor agudo, mareo, falta de aire o dolor en el pecho, detente de inmediato.';
+const WDN=['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'],WDS=['L','M','M','J','V','S','D'];
+const WDDEF={1:[0],2:[0,3],3:[0,2,4],4:[0,1,3,4],5:[0,1,2,4,5],6:[0,1,2,3,4,5],7:[0,1,2,3,4,5,6]};
+function wdays(){const p=S.profile||{};if(Array.isArray(p.wd)&&p.wd.length)return p.wd.slice().sort();return (WDDEF[p.dias]||WDDEF[3]).slice();}
+function dow(t){return (new Date(t).getDay()+6)%7;}
+function day0(t){const d=new Date(t);d.setHours(0,0,0,0);return d.getTime();}
+function trainedOn(t){const a=day0(t),b=a+86400000;return S.log.filter(function(l){return l.t>=a&&l.t<b;});}
+function nextTrainDay(from){const W=wdays();for(let k=1;k<=7;k++){const t=from+k*86400000;if(W.indexOf(dow(t))>=0)return t;}return from+86400000;}
+function restState(){
+  if(!S.log.length||S.draft)return null;
+  const now=Date.now(),today=trainedOn(now);
+  if(today.length)return {k:'hecho',l:today[today.length-1]};
+  const W=wdays(),ws=wk(now),doneW=S.log.filter(function(l){return l.t>=ws;}).length;
+  const isTrain=W.indexOf(dow(now))>=0,yest=trainedOn(now-86400000).length>0;
+  if(doneW>=(S.profile.dias||3))return {k:'meta'};
+  if(!isTrain&&yest)return {k:'descanso'};
+  return null;
+}
+const RECUP=[
+ ['🚶','Caminata suave','20–30 min a paso cómodo, que puedas platicar. Mueve la sangre y ayuda a recuperar las piernas.'],
+ ['🧘','Estiramientos','10 min: 30 s por lado en cadera, isquiotibiales, cuádriceps, pecho y espalda. Sin rebotes ni dolor.'],
+ ['🔄','Movilidad','5–8 min: círculos de hombro y cadera, gato-camello y rotaciones de tronco, despacio.'],
+ ['🫁','Respiración y relajación','5 min: inhala 4 s por la nariz, exhala 6 s por la boca. Baja el estrés y mejora el descanso.'],
+ ['🛞','Rodillo de espuma (opcional)','1 min por zona en las que más trabajaste. Presión moderada, nunca sobre articulaciones.']];
+const ESTIR=[['Cuello','Inclina la oreja al hombro','20 s por lado'],['Pecho','Brazo en el marco de una puerta, gira el cuerpo hacia afuera','30 s por lado'],['Espalda','Postura del niño: rodillas al piso, brazos al frente','45 s'],['Cadera','Zancada baja con rodilla trasera en el piso','30 s por lado'],['Glúteo','Acostado, tobillo sobre la rodilla contraria y jala la pierna','30 s por lado'],['Isquiotibiales','Sentado, pierna estirada, inclínate desde la cadera con espalda recta','30 s por lado'],['Cuádriceps','De pie, lleva el talón al glúteo sosteniendo el tobillo','30 s por lado'],['Pantorrilla','Manos en la pared, pierna atrás con talón en el piso','30 s por lado']];
+function recupBox(){
+  let h='<div class="rcl">'+RECUP.map(function(r){return '<div class="rci"><span class="rce">'+r[0]+'</span><div><b>'+r[1]+'</b><p class="small mute">'+r[2]+'</p></div></div>';}).join('')+'</div>';
+  h+='<details class="wtip"><summary>Rutina de estiramientos de 10 minutos</summary><ol class="estl">'+ESTIR.map(function(e){return '<li><b>'+e[0]+'</b> · '+e[1]+' <span class="mute">('+e[2]+')</span></li>';}).join('')+'</ol><p class="small mute">Respira lento y estira hasta sentir tensión cómoda, nunca dolor.</p></details>';
+  return h;
+}
+function restCard(R,nx){
+  const now=Date.now(),nt=nextTrainDay(now),tom=day0(now)+86400000,nxn=S.plan.days[nx].name;
+  const when=nt===tom?'mañana':('el '+WDN[dow(nt)].toLowerCase());
+  let h='<section class="card hero rest">';
+  if(R.k==='hecho'){
+    const tomTrain=wdays().indexOf(dow(tom))>=0;
+    h+='<div><span class="label">✅ Hoy ya entrenaste</span><h2 class="caps">'+esc(R.l.name)+'</h2><p class="mute">'+(R.l.dur?fm(R.l.dur)+' · ':'')+'¡Bien hecho! Ahora toca recuperar.</p></div>';
+    h+='<p>'+(tomTrain?'Mañana te toca <b>'+esc(nxn)+'</b>.':'Mañana es <b>día de descanso</b>. Tu siguiente rutina es <b>'+esc(nxn)+'</b> '+when+'.')+'</p>';
+  }else if(R.k==='meta'){
+    h+='<div><span class="label">🏆 Meta de la semana cumplida</span><h2 class="caps">Día de descanso</h2></div><p>Ya hiciste tus '+S.profile.dias+' sesiones. Descansar también es entrenar: el músculo crece mientras se recupera. La próxima semana empiezas con <b>'+esc(nxn)+'</b>.</p>';
+  }else{
+    h+='<div><span class="label">🌙 Hoy toca descanso</span><h2 class="caps">Día de recuperación</h2></div><p>Ayer entrenaste. Tu siguiente rutina es <b>'+esc(nxn)+'</b> '+when+'.</p>';
+  }
+  h+='<span class="label">Para hoy te recomiendo (opcional)</span>'+recupBox();
+  h+='<button class="btn ghost" data-act="restover">Quiero entrenar de todos modos</button></section>';
+  return h;
+}
+function weekStrip(){
+  const ws=wk(Date.now()),W=wdays(),td=dow(Date.now());
+  return '<div class="wstr" role="list" aria-label="Tu semana">'+WDS.map(function(L,i){const t=ws+i*86400000,did=trainedOn(t).length>0,pl=W.indexOf(i)>=0;
+    const st=did?'did':(pl?'plan':'rest'),lab=WDN[i]+': '+(did?'entrenaste':(pl?'día de entrenamiento':'descanso'));
+    return '<span role="listitem" class="wsd '+st+(i===td?' td':'')+'" aria-label="'+lab+'"><b>'+L+'</b><i>'+(did?'✓':(pl?'●':'☾'))+'</i></span>';}).join('')+'</div><p class="small mute">✓ entrenaste · ● toca entrenar · ☾ descanso. Cambia tus días en Ajustes.</p>';
+}
 function vHoy(){
   const n=S.plan.days.length,nx=nextIdx(),di=S.draft?S.draft.day:((UI.pick!=null&&UI.pick<n)?UI.pick:nx),d=S.plan.days[di];
   const cyc=cycl();
   const ws=wk(Date.now()),done=S.log.filter(function(l){return l.t>=ws;}).length;
   const last=S.log[S.log.length-1];
   const plats=Object.keys(S.prog).filter(function(k){return S.prog[k].plat;});
-  let h='<header style="display:flex;flex-direction:column;gap:8px">'+brand()+'<p class="mute" style="margin-top:6px">Vamos por una más · '+new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})+'</p><h1>Tu próxima serie empieza aquí.</h1></header>';
+  const RS=(UI.restOver||S.draft||UI.pick!=null)?null:restState();
+  let h='<header style="display:flex;flex-direction:column;gap:8px">'+brand()+'<p class="mute" style="margin-top:6px">'+(RS?'Día de descanso':'Vamos por una más')+' · '+new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'})+'</p><h1>'+(RS?(RS.k==='hecho'?'Hoy ya cumpliste. Ahora, a recuperar.':'Hoy toca recuperar.'):'Tu próxima serie empieza aquí.')+'</h1></header>';
   if(S.log.length&&!S.draft){
     const t0=new Date();t0.setHours(0,0,0,0);const l0=new Date(S.log[S.log.length-1].t);l0.setHours(0,0,0,0);
     const gap=Math.round((t0-l0)/86400000);
     if(gap>=2)h+='<p class="note">Pasaron '+gap+' días desde tu última sesión. No pierdes nada: la rutina que quedó pendiente es <b>'+S.plan.days[nx].name+'</b> y los demás días se acomodan después.</p>';
   }
+  if(RS)h+=restCard(RS,nx);
+  else{
   h+='<section class="card hero"><div><h2 class="caps">'+esc(d.name)+'</h2><p class="mute">'+(di!==nx&&!S.draft?'Rutina cambiada':'Día '+(di+1)+' de '+n)+'</p></div><div class="row"><span class="chipi">'+IC.clock+S.profile.min+' min</span><span class="chipi">'+IC.dumb+d.slots.length+' ejercicios</span></div>';
   if(S.draft){
     h+='<div class="row"><button class="btn dark" data-act="start">Continuar sesión '+IC.arrow+'</button><button class="btn ghost sm" style="min-height:52px;background:var(--card);border:0" data-act="wu">Calentar · 5 min</button></div><button class="btn ghost" data-act="discard">Descartar sesión en curso</button>';
@@ -1156,12 +1218,14 @@ function vHoy(){
     if(rest.length)h+='<p class="small mute">Después: <b>'+rest.join(' → ')+'</b></p>';
   }
   h+='</section>';
+  }
   const goalW=S.profile.dias,pct=Math.min(100,Math.round(done/goalW*100));
   h+='<section class="card wkc"><div class="row between" style="flex-wrap:nowrap"><div><h3>Esta semana</h3><p class="small mute">'+done+' de '+goalW+' sesiones</p></div><div class="wk" aria-hidden="true">'+Array.from({length:goalW},function(_,i){return '<i class="'+(i<done?'on':'')+'"></i>';}).join('')+'</div><div class="ring" style="--p:'+pct+'" role="img" aria-label="'+pct+'% de la meta semanal"><b>'+pct+'%</b></div></div>';
+  h+=weekStrip();
   if(last)h+='<p class="small mute">Última: '+esc(last.name)+', '+dfmt(last.t)+(last.dur?' · '+fm(last.dur):'')+'.</p>';
   else h+='<p class="small mute">Tu primera sesión sirve para calibrar los pesos de cada ejercicio.</p>';
   h+='</section>';
-  h+='<section class="plain"><h2 style="margin:4px 4px 10px">Tu rutina</h2>'+d.slots.map(function(sl){const e=X[sl.ex];return '<div class="lw"><button class="li" data-act="hoyli" data-ex="'+sl.ex+'" aria-expanded="'+(UI.hoyOpen===sl.ex)+'"><div class="ph">'+thumb(sl.ex)+'</div><div><b>'+e.n+'</b><p class="small mute">'+lineFor(sl)+'</p>'+nextTag(sl.ex)+'</div>'+IC.chev+'</button>'+(UI.hoyOpen===sl.ex?guideBox(e):'')+'</div>';}).join('')+'</section>';
+  h+='<section class="plain"><h2 style="margin:4px 4px 10px">'+(RS?'Tu siguiente rutina':'Tu rutina')+'</h2>'+d.slots.map(function(sl){const e=X[sl.ex];return '<div class="lw"><button class="li" data-act="hoyli" data-ex="'+sl.ex+'" aria-expanded="'+(UI.hoyOpen===sl.ex)+'"><div class="ph">'+thumb(sl.ex)+'</div><div><b>'+e.n+'</b><p class="small mute">'+lineFor(sl)+'</p>'+nextTag(sl.ex)+'</div>'+IC.chev+'</button>'+(UI.hoyOpen===sl.ex?guideBox(e):'')+'</div>';}).join('')+'</section>';
   if(plats.length)h+='<section class="card"><span class="label">Atención</span>'+plats.map(function(k){return '<p class="note"><b>'+X[k].n+'</b> lleva varias sesiones sin mejorar. Prueba cambiarlo por otra variante en la pestaña Plan.</p>';}).join('')+'</section>';
   return h;
 }
@@ -1842,6 +1906,7 @@ function vAjustes(){
   {const a=al(),np=('Notification' in window)?Notification.permission:'na';
    h+='<section class="card"><span class="label">Escala de esfuerzo por serie</span><div class="chips"><button class="chip" data-act="esc" data-v="rpe" aria-pressed="'+(escala()==='rpe')+'">RPE (6 a 10)</button><button class="chip" data-act="esc" data-v="rir" aria-pressed="'+(escala()==='rir')+'">Repeticiones en reserva (0 a 4+)</button></div><p class="small mute">Son lo mismo con distinto nombre: RPE 8 = te quedaban 2. Elige la que te resulte más fácil.</p></section>';
    h+=fbCard('aj');
+   h+='<section class="card"><span class="label">Tus días de entrenamiento</span><div class="chips">'+WDN.map(function(n,i){return '<button class="chip" data-act="wday" data-v="'+i+'" aria-pressed="'+(wdays().indexOf(i)>=0)+'">'+n.slice(0,3)+'</button>';}).join('')+'</div><p class="small mute">Los demás días se marcan como descanso. Tu meta sigue siendo '+S.profile.dias+' sesiones por semana; si entrenas otro día, la app se acomoda.</p></section>';
    h+=WATCH_REC;
    h+='<section class="card"><span class="label">Tu salud</span><p class="small">🩺 '+HEALTH+'</p></section>';
    h+='<section class="card"><span class="label">Alertas del descanso</span><div class="chips"><button class="chip" data-act="alsnd" aria-pressed="'+a.snd+'">🔔 Sonido '+(a.snd?'activado':'apagado')+'</button><button class="chip" data-act="alntf" aria-pressed="'+(a.ntf&&np==='granted')+'">📲 Notificación '+(a.ntf&&np==='granted'?'activada':'apagada')+'</button></div>';
@@ -2037,7 +2102,7 @@ document.addEventListener('click',function(ev){
   }
   if(a==='rv'){UI.rv=(UI.rv===+d.i)?null:+d.i;UI.review=null;render();return;}
   if(a==='finish'){finish();return;}
-  if(a==='closesum'){UI.summary=null;UI.tab='hoy';render();window.scrollTo(0,0);return;}
+  if(a==='closesum'){UI.summary=null;UI.restOver=false;UI.tab='hoy';render();window.scrollTo(0,0);return;}
   if(a==='skip'){stopTimer();return;}
   if(a==='redo'){UI.ob=Object.assign({split:'auto'},S.profile,{unit:S.unit||'kg'});render();window.scrollTo(0,0);return;}
   if(a==='bkcopy'){
@@ -2052,6 +2117,8 @@ document.addEventListener('click',function(ev){
     return;
   }
   if(a==='unit'){S.unit=d.v==='lb'?'lb':'kg';UNIT=S.unit;save();render();return;}
+  if(a==='restover'){UI.restOver=true;render();return;}
+  if(a==='wday'){const v=+d.v,W=wdays(),k=W.indexOf(v);if(k>=0){if(W.length>1)W.splice(k,1);}else W.push(v);S.profile.wd=W.sort();save();render();return;}
   if(a==='pickopen'){UI.pickOpen=!UI.pickOpen;render();return;}
   if(a==='pick'){UI.pick=(+d.i===nextIdx())?null:+d.i;UI.pickOpen=false;render();return;}
   if(a==='exu'){S.exu=S.exu||{};S.exu[d.ex]=d.v;if(UI.pl)UI.pl=null;save();render();return;}
