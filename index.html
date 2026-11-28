@@ -242,6 +242,10 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .wsd{display:flex;flex-direction:column;align-items:center;gap:4px;padding:8px 0;border-radius:12px;background:var(--chip);font-size:12px}
 .wsd b{font-size:12px;color:var(--mute);font-weight:600}.wsd i{font-style:normal;font-size:15px;line-height:1}
 .wsd.did{background:var(--lime)}.wsd.did b{color:var(--ink)}.wsd.rest i{color:var(--mute)}.wsd.td{outline:2px solid var(--ink);outline-offset:-2px}
+.rcvw{display:grid;grid-template-columns:130px 1fr;gap:14px;align-items:start}.rcvw .bmap svg{width:100%;height:auto}
+.rcvl{display:flex;flex-direction:column;gap:10px}.rcvr{display:flex;flex-direction:column;gap:4px}.rcvr b{font-size:15px}.rcvr .row{flex-wrap:nowrap;gap:6px}.rcvr .pill{flex-shrink:0;font-size:12px}
+.rcvb{height:8px;border-radius:99px;background:var(--chip);overflow:hidden}.rcvb i{display:block;height:100%;border-radius:99px}.rcvb i.lo{background:#e5484d}.rcvb i.mid{background:#f5a524}
+@media(max-width:360px){.rcvw{grid-template-columns:1fr}.rcvw .bmap{max-width:140px}}
 .sstk{position:sticky;top:0;z-index:20;margin:-28px -16px 0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 #app[data-v="resumen"]>section.card:nth-of-type(1){background:var(--mint)}
@@ -1185,6 +1189,43 @@ function weekStrip(){
     const st=did?'did':(pl?'plan':'rest'),lab=WDN[i]+': '+(did?'entrenaste':(pl?'día de entrenamiento':'descanso'));
     return '<span role="listitem" class="wsd '+st+(i===td?' td':'')+'" aria-label="'+lab+'"><b>'+L+'</b><i>'+(did?'✓':(pl?'●':'☾'))+'</i></span>';}).join('')+'</div><p class="small mute">✓ entrenaste · ● toca entrenar · ☾ descanso. Cambia tus días en Ajustes.</p>';
 }
+const RBASE={cuad:72,gluteo:72,isquio:72,dorsal:72,pecho:72,lumbar:72,hombro:60,trapecio:60,hombro_p:48,biceps:48,triceps:48,gemelo:48,core:36};
+const RSTR={pecho:'Pecho: brazo en el marco de una puerta, 30 s por lado',dorsal:'Espalda: postura del niño, 45 s',trapecio:'Espalda alta: abraza tus hombros y redondea la espalda, 30 s',gluteo:'Glúteo: acostado, tobillo sobre la rodilla contraria, 30 s por lado',isquio:'Isquiotibiales: sentado, inclínate con la espalda recta, 30 s por lado',cuad:'Cuádriceps: talón al glúteo de pie, 30 s por lado',gemelo:'Pantorrilla: manos en la pared, talón al piso, 30 s por lado',hombro:'Hombro: brazo cruzado al pecho, 30 s por lado',hombro_p:'Hombro posterior: brazo cruzado al pecho, 30 s por lado',biceps:'Bíceps: mano en la pared a la altura del hombro, gira el cuerpo, 30 s',triceps:'Tríceps: mano detrás de la nuca, empuja el codo suave, 30 s por lado',core:'Abdomen: boca abajo, empuja con las manos y arquea suave, 20 s',lumbar:'Lumbar: acostado, abraza las rodillas al pecho, 30 s'};
+function recov(now){
+  now=now||Date.now();const F={},last={};
+  S.log.filter(function(l){return now-l.t<5*86400000&&l.t<=now;}).forEach(function(l){
+    const L={};(l.items||[]).forEach(function(it){const e=X[it.ex];if(!e)return;const n=(it.sets||[]).filter(function(q){return q.done!==false;}).length;if(!n)return;const m=musOf(e);m.main.forEach(function(k){L[k]=(L[k]||0)+n;});m.sec.forEach(function(k){L[k]=(L[k]||0)+n*0.5;});});
+    const el=(now-l.t)/3600000;
+    Object.keys(L).forEach(function(k){if(!RBASE[k])return;const need=RBASE[k]*Math.max(.6,Math.min(1.3,.6+L[k]/10)),g=Math.min(1,.35+L[k]/4.5),f=Math.max(0,1-el/need)*g;
+      if(f>0){F[k]=Math.min(1,(F[k]||0)+f);const rem=need*(1-0.15/g)-el;last[k]=Math.max(last[k]||0,rem);}});
+  });
+  return Object.keys(F).map(function(k){return {k:k,f:F[k],p:Math.round((1-F[k])*100),h:Math.max(0,Math.ceil(last[k]||0))};}).sort(function(a,b){return b.f-a.f;});
+}
+function readyWhen(h){if(h<=0)return 'ya';const t=new Date(Date.now()+h*3600000),td=day0(Date.now()),dd=Math.round((day0(t)-td)/86400000);
+  const hr=t.getHours(),pt=hr<12?'en la mañana':(hr<19?'en la tarde':'en la noche');
+  return dd<=0?'hoy '+pt:(dd===1?'mañana '+pt:'el '+WDN[dow(t)].toLowerCase());}
+function recCard(mode){
+  const R=recov();if(!R.length){if(mode==='cuerpo')return '<section class="card"><span class="label">🔋 Recuperación muscular</span><p class="mute">Todos tus músculos están recuperados. Cuando entrenes, aquí verás cuáles necesitan descanso y cuándo estarán listos.</p></section>';return '';}
+  const tired=R.filter(function(r){return r.p<85;}),ready=MUSL.filter(function(k){return !R.some(function(r){return r.k===k&&r.p<85;});});
+  if(!tired.length&&mode!=='cuerpo')return '';
+  const op=function(k){const r=R.find(function(x){return x.k===k;});return r?String(Math.max(.2,r.f).toFixed(2)):'0';};
+  let h='<section class="card rcv"><div class="row between"><span class="label">🔋 Recuperación muscular</span><span class="small mute">'+(tired.length?tired.length+' en descanso':'Todo listo')+'</span></div>';
+  h+='<div class="rcvw"><div class="bmap">'+muscleSVG({main:tired.map(function(r){return r.k;}),sec:[]},op,'#e5484d')+'</div><div class="rcvl">';
+  tired.slice(0,mode==='mini'?4:12).forEach(function(r){const st=r.p<50?'lo':'mid';
+    h+='<div class="rcvr"><div class="row between"><b>'+MN[r.k]+'</b><span class="pill '+(st==='lo'?'warn':'')+'">'+(st==='lo'?'Descansar':'Recuperando')+'</span></div><div class="rcvb"><i class="'+st+'" style="width:'+r.p+'%"></i></div><span class="small mute">'+r.p+'% recuperado · listo '+readyWhen(r.h)+'</span></div>';});
+  h+='</div></div>';
+  if(ready.length&&tired.length)h+='<p class="small"><b>✅ Listos para entrenar:</b> '+ready.map(function(k){return MN[k];}).join(', ')+'.</p>';
+  if(mode!=='mini'){
+    const nx=S.plan.days[nextIdx()];
+    if(nx){const nm={};nx.slots.forEach(function(sl){const e=X[sl.ex];if(e)musOf(e).main.forEach(function(k){nm[k]=1;});});
+      const clash=tired.filter(function(r){return nm[r.k]&&r.p<70;});
+      if(clash.length)h+='<p class="note">Tu siguiente rutina (<b>'+esc(nx.name)+'</b>) trabaja '+clash.map(function(r){return MN[r.k].toLowerCase();}).join(', ')+', que aún no se recupera'+(clash.length>1?'n':'')+'. Si entrenas antes de que estén listos, calienta bien y elige "Cansado" para que la sesión sea más ligera.</p>';}
+    const st=tired.filter(function(r){return RSTR[r.k];}).slice(0,4);
+    if(st.length)h+='<details class="wtip"><summary>Estiramientos para lo que trabajaste</summary><ul class="estl">'+st.map(function(r){return '<li>'+RSTR[r.k]+'</li>';}).join('')+'</ul><p class="small mute">Estira suave, sin rebotes ni dolor. Dormir 7–9 horas y comer suficiente proteína también acelera la recuperación.</p></details>';
+  }else h+='<p class="small mute">Detalle y estiramientos en la pestaña Cuerpo.</p>';
+  h+='<p class="small mute">Estimación según tus series de los últimos días: los músculos grandes tardan unas 72 h, los chicos unas 48 h. Si sigues adolorido, descansa más.</p></section>';
+  return h;
+}
 function vHoy(){
   const n=S.plan.days.length,nx=nextIdx(),di=S.draft?S.draft.day:((UI.pick!=null&&UI.pick<n)?UI.pick:nx),d=S.plan.days[di];
   const cyc=cycl();
@@ -1220,6 +1261,7 @@ function vHoy(){
   h+='</section>';
   }
   const goalW=S.profile.dias,pct=Math.min(100,Math.round(done/goalW*100));
+  h+=recCard(RS?'full':'mini');
   h+='<section class="card wkc"><div class="row between" style="flex-wrap:nowrap"><div><h3>Esta semana</h3><p class="small mute">'+done+' de '+goalW+' sesiones</p></div><div class="wk" aria-hidden="true">'+Array.from({length:goalW},function(_,i){return '<i class="'+(i<done?'on':'')+'"></i>';}).join('')+'</div><div class="ring" style="--p:'+pct+'" role="img" aria-label="'+pct+'% de la meta semanal"><b>'+pct+'%</b></div></div>';
   h+=weekStrip();
   if(last)h+='<p class="small mute">Última: '+esc(last.name)+', '+dfmt(last.t)+(last.dur?' · '+fm(last.dur):'')+'.</p>';
@@ -1564,6 +1606,7 @@ function vResumen(){
    if(ks.length){const mx=sc[ks[0]];
      const op=function(k){const v=sc[k]||0;return v<=0?'0':String(Math.max(.25,Math.min(1,v/mx)).toFixed(2));};
      h+='<section class="card"><span class="label">Lo que trabajaste hoy</span><div class="bmap">'+muscleSVG({main:ks,sec:[]},op,'#f2552c')+'</div><div class="bml">'+ks.map(function(k){const v=sc[k],o=op(k);return '<span class="bmi"><i style="opacity:'+o+'"></i>'+MN[k]+' <b>'+(Math.round(v*10)/10)+'</b></span>';}).join('')+'</div><p class="small mute">Número = series que trabajaron ese músculo (las de apoyo cuentan como media). Más intenso el color, más trabajo recibió.</p></section>';}}
+  {const R2=recov().filter(function(r){return r.p<85;});if(R2.length)h+='<section class="card"><span class="label">🔋 Ahora a recuperar</span><p>'+R2.slice(0,6).map(function(r){return '<b>'+MN[r.k]+'</b> listo '+readyWhen(r.h);}).join(' · ')+'.</p><p class="small mute">Evita volver a cargar estos músculos fuerte antes de ese momento. Revisa el detalle en Hoy o en Cuerpo.</p></section>';}
   h+='<section class="card"><span class="label">Ajustes para la próxima vez</span>';
   if(!R.adj.length)h+='<p class="mute">No registraste series, así que no cambié nada.</p>';
   R.adj.forEach(function(a){h+='<div class="adj"><b>'+a.n+(a.plat?' <span class="pill warn">estancado</span>':'')+'</b><span class="mute">'+a.msg+'</span></div>';});
@@ -1789,7 +1832,8 @@ function vCuerpo(){
   const B=S.body||(S.body=[]);
   if(!UI.bf)UI.bf={ph:{},date:todayISO(),mu:(B.length&&B[B.length-1].mu)||'%'};
   const f=UI.bf,first=B[0],last=B[B.length-1],open=!B.length||UI.bfOpen;
-  let h='<header><h1>Cuerpo</h1><p class="mute" style="margin-top:6px">Fotos y medidas para ver cómo cambia tu cuerpo junto con tu entrenamiento.</p></header>';
+  let h='<header><h1>Cuerpo</h1><p class="mute" style="margin-top:6px">Cómo se recuperan tus músculos, tus fotos y medidas para ver cómo cambia tu cuerpo junto con tu entrenamiento.</p></header>';
+  h+=recCard('cuerpo');
   if(B.length){
     h+='<section class="card"><div class="row between"><span class="label">Tu avance</span><span class="small mute">'+B.length+' registro'+(B.length>1?'s':'')+' · desde '+dfmt(first.t)+'</span></div>';
     if(B.length<2)h+='<p class="mute">Ya tienes tu punto de partida. Cuando agregues otro registro, aquí verás los cambios y el análisis.</p>';
