@@ -246,6 +246,14 @@ a.btn{display:inline-flex;align-items:center;justify-content:center;text-decorat
 .rcvl{display:flex;flex-direction:column;gap:10px}.rcvr{display:flex;flex-direction:column;gap:4px}.rcvr b{font-size:15px}.rcvr .row{flex-wrap:nowrap;gap:6px}.rcvr .pill{flex-shrink:0;font-size:12px}
 .rcvb{height:8px;border-radius:99px;background:var(--chip);overflow:hidden}.rcvb i{display:block;height:100%;border-radius:99px}.rcvb i.lo{background:#e5484d}.rcvb i.mid{background:#f5a524}
 @media(max-width:360px){.rcvw{grid-template-columns:1fr}.rcvw .bmap{max-width:140px}}
+.cfx{position:fixed;inset:0;width:100vw;height:100vh;pointer-events:none;z-index:9998}
+#prb{position:fixed;inset:0;display:grid;place-items:center;z-index:9999;background:rgba(0,0,0,.25);animation:prbIn .25s ease-out}
+#prb.out{opacity:0;transition:opacity .3s}
+.prbi{display:flex;flex-direction:column;align-items:center;gap:6px;background:#111;color:#fff;padding:22px 30px;border-radius:24px;box-shadow:0 20px 50px rgba(0,0,0,.35);animation:prbPop .5s cubic-bezier(.2,1.6,.4,1)}
+.prbi b{font-size:26px;letter-spacing:-.01em;color:var(--lime,#c6f432)}.prbi span{font-size:14px;opacity:.85;text-align:center;max-width:240px}
+.prbt{font-size:54px!important;opacity:1!important;line-height:1;animation:prbT 1s ease-in-out infinite alternate}
+@keyframes prbIn{from{opacity:0}}@keyframes prbPop{from{transform:scale(.4);opacity:0}}@keyframes prbT{to{transform:rotate(-10deg) scale(1.12)}}
+@media(prefers-reduced-motion:reduce){.prbi,.prbt,#prb{animation:none}}
 .sstk{position:sticky;top:0;z-index:20;margin:-28px -16px 0;padding:calc(10px + env(safe-area-inset-top)) 16px 10px;background:color-mix(in srgb,var(--bg) 92%,transparent);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--line);display:flex;flex-direction:column;gap:6px}
 .sstn{display:block;font:800 19px/1.2 var(--disp);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.selx{font:800 30px/1 var(--disp);font-variant-numeric:tabular-nums;letter-spacing:-.01em}
 #app[data-v="resumen"]>section.card:nth-of-type(1){background:var(--mint)}
@@ -1536,7 +1544,7 @@ function vSesion(){
       if(e.u==='s'&&!s.done)h+='<button class="btn ghost sm swbtn" data-act="swst" data-i="'+i+'" data-j="'+j+'">⏱ Iniciar cronómetro · meta '+tgtReps(it)+' s</button>';
       if(s.done){
         const rr=parseInt(s.r,10)||0,ww=parseFloat(s.w)||0,sc=e1(e.step?ww:0,rr);
-        if(H.n>0&&sc>H.msc+0.001)h+='<p class="pr">¡Récord personal! Antes: '+(e.step&&ww>H.mw+0.001?fw(H.mw,U):setTxt(it.ex,H.last.sets))+'</p>';
+        if(H.n>0&&sc>H.msc+0.001)h+='<p class="pr" data-prk="'+it.ex+'-'+j+'">🏆 ¡Récord personal! Antes: '+(e.step&&ww>H.mw+0.001?fw(H.mw,U):setTxt(it.ex,H.last.sets))+'</p>';
         else if(effSet(e,rr,fbOf(it)))h+='<p class="pr ef">💪 Serie efectiva para crecer</p>';
         if(escala()==='rpe'){const sel=RPE.filter(function(o){return s.rir===o[1];})[0];
           h+='<div class="rir"><span class="small">Esfuerzo (RPE) <button class="info" data-act="rpeinfo" data-i="'+i+'" data-j="'+j+'" aria-label="Qué es RPE">ⓘ</button></span><div class="rirb" role="group" aria-label="Esfuerzo RPE, serie '+(j+1)+'">'+RPE.map(function(o){return '<button data-act="rir" data-i="'+i+'" data-j="'+j+'" data-v="'+o[1]+'" aria-pressed="'+(s.rir===o[1])+'" style="--c:'+o[2]+'" title="'+o[3]+': '+o[4]+'">'+o[0]+'</button>';}).join('')+'</div>'+(sel?'<span class="small rpes" style="--c:'+sel[2]+'">RPE '+sel[0]+' · '+sel[3]+': '+sel[4].toLowerCase()+'</span>':'')+'</div>';}
@@ -1956,6 +1964,7 @@ function vAjustes(){
    h+='<section class="card"><span class="label">Alertas del descanso</span><div class="chips"><button class="chip" data-act="alsnd" aria-pressed="'+a.snd+'">🔔 Sonido '+(a.snd?'activado':'apagado')+'</button><button class="chip" data-act="alntf" aria-pressed="'+(a.ntf&&np==='granted')+'">📲 Notificación '+(a.ntf&&np==='granted'?'activada':'apagada')+'</button></div>';
    h+='<span class="small">Duración de la alarma (tócala en cualquier parte de la pantalla para callarla)</span><div class="chips">'+[4,8,15].map(function(n){return '<button class="chip" data-act="alen" data-v="'+n+'" aria-pressed="'+((a.alen||8)===n)+'">'+n+' s</button>';}).join('')+'</div>';
    h+='<button class="btn ghost sm" data-act="altest" style="align-self:flex-start">Probar alerta</button>';
+   h+='<button class="btn ghost sm" data-act="celtest">🏆 Ver celebración de récord</button>';
    if(np==='na')h+='<p class="small mute">Este navegador no permite notificaciones. En iPhone funcionan solo con la app instalada en la pantalla de inicio (iOS 16.4 o más nuevo).</p>';
    else if(np==='denied')h+='<p class="small mute">Bloqueaste las notificaciones. Actívalas en los ajustes del navegador o del teléfono para ALFAYO.</p>';
    else h+='<p class="small mute">'+(/Android/i.test(navigator.userAgent)?'La notificación llega aunque cambies de app. Durante la sesión la pantalla se mantiene encendida; si la apagas a mano, el aviso puede tardar unos segundos.':'La notificación llega cuando la app está en segundo plano. En iPhone, si cierras la app por completo o se bloquea mucho tiempo, puede no sonar: déjala abierta durante la sesión.')+'</p>';
@@ -1978,13 +1987,55 @@ function renderInner(){
   app.dataset.v=UI.tab;app.innerHTML={hoy:vHoy,plan:vPlan,progreso:vProgreso,cuerpo:vCuerpo,ajustes:vAjustes}[UI.tab]();
 }
 
+function fanfare(){
+  if(!AC||!al().snd)return;
+  try{if(AC.state==='suspended')AC.resume();
+    const out=AC.createGain();out.gain.value=0.5;out.connect(AC.destination);const t0=AC.currentTime+0.03;
+    [[523.25,0,.12],[659.25,.12,.12],[783.99,.24,.12],[1046.5,.38,.55],[783.99,.38,.55],[1318.5,.38,.55]].forEach(function(n){
+      ['triangle','square'].forEach(function(tp,ix){const o=AC.createOscillator(),g=AC.createGain(),st=t0+n[1],du=n[2];o.type=tp;o.frequency.value=n[0];
+        const pk=ix?0.08:0.35;g.gain.setValueAtTime(0.0001,st);g.gain.exponentialRampToValueAtTime(pk,st+0.015);g.gain.setValueAtTime(pk,st+du*0.6);g.gain.exponentialRampToValueAtTime(0.0001,st+du);
+        o.connect(g);g.connect(out);o.start(st);o.stop(st+du+0.02);});});
+  }catch(e){}
+}
+function confetti(){
+  if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const c=document.createElement('canvas');c.className='cfx';c.setAttribute('aria-hidden','true');document.body.appendChild(c);
+  const dpr=Math.min(2,window.devicePixelRatio||1),W=innerWidth,Hh=innerHeight;c.width=W*dpr;c.height=Hh*dpr;let x=null;try{x=c.getContext('2d');}catch(e){}if(!x){c.remove();return;}x.scale(dpr,dpr);
+  const cols=['#c6f432','#f2552c','#ffd23f','#3ec6ff','#ff5fa2','#ffffff','#7c5cff'],P=[];
+  for(let i=0;i<160;i++){const side=i%2,a=(side?-1:1)*(0.35+Math.random()*0.55);
+    P.push({x:side?W+10:-10,y:Hh*(0.55+Math.random()*0.3),vx:Math.cos(Math.PI/2-a)*(side?-1:1)*(7+Math.random()*9)*(side?-1:1),vy:-(11+Math.random()*9),w:6+Math.random()*7,h:8+Math.random()*10,r:Math.random()*6,vr:(Math.random()-.5)*0.4,c:cols[i%cols.length],s:Math.random()<.3});}
+  P.forEach(function(p,i){p.vx=(i%2?-1:1)*(5+Math.random()*13);p.vy=-(12+Math.random()*12);});
+  const t0=performance.now();
+  (function f(t){const el=t-t0;x.clearRect(0,0,W,Hh);
+    P.forEach(function(p){p.vy+=0.32;p.vx*=0.99;p.vy*=0.99;p.x+=p.vx;p.y+=p.vy;p.r+=p.vr;
+      x.save();x.globalAlpha=Math.max(0,1-el/3200);x.translate(p.x,p.y);x.rotate(p.r);x.fillStyle=p.c;
+      if(p.s){x.beginPath();x.arc(0,0,p.w/2,0,Math.PI*2);x.fill();}else x.fillRect(-p.w/2,-p.h/2,p.w,p.h*Math.abs(Math.cos(p.r*2)));x.restore();});
+    if(el<3300)requestAnimationFrame(f);else c.remove();})(t0);
+}
+function celebrate(txt,sub){
+  confetti();fanfare();try{navigator.vibrate&&navigator.vibrate([90,60,90,60,260]);}catch(e){}
+  let b=document.getElementById('prb');if(b)b.remove();
+  b=document.createElement('div');b.id='prb';b.setAttribute('role','status');
+  b.innerHTML='<div class="prbi"><span class="prbt">🏆</span><b>'+esc(txt)+'</b>'+(sub?'<span>'+esc(sub)+'</span>':'')+'</div>';
+  b.addEventListener('click',function(){b.remove();});document.body.appendChild(b);
+  setTimeout(function(){if(b.parentNode){b.classList.add('out');setTimeout(function(){b.remove();},350);}},2600);
+}
+function prCheck(){
+  if(UI.inSession){
+    const els=document.querySelectorAll('[data-prk]'),seen=UI.prSeen||(UI.prSeen={_init:false});
+    let nw=null;els.forEach(function(el){const k=el.getAttribute('data-prk');if(!seen[k]){if(seen._init)nw=k;seen[k]=1;}});
+    seen._init=true;
+    if(nw){const ex=X[nw.split('-').slice(0,-1).join('-')];celebrate('¡Récord personal!',ex?ex.n:'');}
+  }else UI.prSeen=null;
+  if(UI.summary&&UI.summary.prs&&UI.summary.prs.length&&!UI.summary.cel){UI.summary.cel=1;setTimeout(function(){celebrate(UI.summary.prs.length===1?'¡Nuevo récord!':'¡'+UI.summary.prs.length+' récords hoy!','Sesión: '+UI.summary.name);},250);}
+}
 function render(){
   try{renderInner();}catch(err){
     try{console.error(err);}catch(e){}
     UI.inSession=false;UI.wu=null;UI.summary=null;UI.sw=null;UI.pl=null;
     try{renderInner();}catch(err2){const app=document.getElementById('app');if(app)app.innerHTML='<section class="card"><h2>Algo falló al abrir</h2><p class="small mute">Tus datos siguen guardados. Copia tu respaldo antes de intentar otra cosa.</p><textarea readonly style="min-height:120px">'+esc(JSON.stringify(S))+'</textarea><p class="small mute">Detalle: '+esc(String(err2&&err2.message||err2))+'</p><button class="btn" onclick="location.reload()">Reintentar</button></section>';}
   }
-  try{startDemos();navGuard();wakeSync();showToast();}catch(e){}
+  try{startDemos();navGuard();wakeSync();showToast();prCheck();}catch(e){}
 }
 function showToast(){if(!UI.toast)return;let t=document.getElementById('toast');if(!t){t=document.createElement('div');t.id='toast';t.setAttribute('role','status');document.body.appendChild(t);}t.textContent=UI.toast;UI.toast=null;t.className='on';clearTimeout(t._h);t._h=setTimeout(function(){t.className='';},2600);}
 /* Android: botón Atrás navega dentro de la app en vez de cerrarla */
@@ -2048,6 +2099,7 @@ document.addEventListener('click',function(ev){
   if(a==='alntf'){S.al=al();if(S.al.ntf&&('Notification' in window)&&Notification.permission==='granted'){S.al.ntf=false;save();render();return;}
     if(!('Notification' in window)){render();return;}
     Notification.requestPermission().then(function(p){S.al=al();S.al.ntf=p==='granted';save();render();}).catch(function(){render();});return;}
+  if(a==='celtest'){unlockAudio();celebrate('¡Récord personal!','Así se ve cuando superas tu mejor marca');return;}
   if(a==='altest'){unlockAudio();const x=al();if(x.snd)beep();else try{navigator.vibrate&&navigator.vibrate([500,250,500]);}catch(e){}if(x.ntf)notify();return;}
   if(a==='start'){UI.wu=null;startSession();return;}
   if(a==='wu'){UI.wu=0;UI.inSession=false;render();window.scrollTo(0,0);return;}
